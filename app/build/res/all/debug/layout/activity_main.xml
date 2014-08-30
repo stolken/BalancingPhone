@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp" >
+
+    <TextView
+        android:id="@+id/tvSensor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+    />
+
+
+
+
+    <TextView
+        android:id="@+id/tvConsole"
+        android:layout_width="match_parent"
+        android:layout_gravity="center_horizontal|bottom"
+        android:text="TextView"
+        android:layout_height="200px"
+        android:autoText="false"
+        android:background="#ff5891ff" />
+
+
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/seekBar"
+        android:max="180" />
+
+    <Button
+        android:id="@+id/bRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|top"
+        android:text="Read"
+   />
+
+    <Button
+        android:id="@+id/bWrite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|top"
+        android:text="Write"
+ />
+
+    <Button
+        android:id="@+id/bSet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|top"
+        android:text="Set"
+        />
+
+</LinearLayout>
+
+
+
+
+<!-- From: file:/C:/Users/Marc/AndroidStudioProjects/BalancingPhone/app/src/main/res/layout/activity_main.xml -->

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue="1"
+        android:inputType="numberDecimal|numberSigned"
+        android:key="SP_Pitch"
+        android:title="SP_Pitch" />
+    <EditTextPreference
+        android:defaultValue="1500"
+        android:inputType="numberDecimal|numberSigned"
+        android:key="servo_neutral"
+        android:title="servo_neutral" />
+    <EditTextPreference
+        android:defaultValue="2"
+        android:inputType="numberDecimal|numberSigned"
+        android:key="Kp_Pitch"
+        android:title="Kp_Pitch" />
+    <EditTextPreference
+        android:defaultValue="2"
+        android:inputType="numberDecimal|numberSigned"
+        android:key="Ki_Pitch"
+        android:title="Ki_Pitch" />
+    <EditTextPreference
+        android:defaultValue="2"
+        android:inputType="numberDecimal|numberSigned"
+        android:key="Kd_Pitch"
+        android:title="Kd_Pitch" />
+</PreferenceScreen><!-- From: file:/C:/Users/Marc/AndroidStudioProjects/BalancingPhone/app/src/main/res/xml/preferences.xml -->

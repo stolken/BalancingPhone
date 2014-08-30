@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp" >
+
+    <TextView
+        android:id="@+id/tvSensor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autoText="false"
+    />
+
+
+
+
+    <TextView
+        android:id="@+id/tvConsole"
+        android:layout_width="match_parent"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_height="200px"
+        android:autoText="false"
+        android:background="#ff5891ff" />
+
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PID"
+            android:id="@+id/swLoop"
+            />
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pfs"
+            android:id="@+id/bPreferences" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RSP"
+            android:id="@+id/bResetSP" />
+
+
+
+        </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TX"
+        android:id="@+id/bTX" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RX"
+        android:id="@+id/bRX" />
+
+</LinearLayout>
+
+</LinearLayout>
+
+
+
+
+<!-- From: file:/C:/Users/Marc/AndroidStudioProjects/BalancingPhone/app/src/main/res/layout/activity_main.xml -->
