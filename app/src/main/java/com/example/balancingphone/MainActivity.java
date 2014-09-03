@@ -1,7 +1,10 @@
 package com.example.balancingphone;
 
 
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import android.app.Activity;
 import android.content.Context;
@@ -30,6 +33,8 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.nio.ByteBuffer;
+
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphViewSeries;
@@ -43,7 +48,6 @@ public class MainActivity extends Activity implements SensorEventListener {
     GraphView graphView;
     TextView tvSensor;
     TextView tvConsole;
-    Boolean bArduinoReady;
     Switch swLoop;
     Button bPreferences;
     Button bRX;
@@ -55,9 +59,15 @@ public class MainActivity extends Activity implements SensorEventListener {
     double SP_Pitch; //set point for pitch
     double PV_Pitch;
 
-    double max_Output = 2000;
-    double min_Output = 1000;
+    short max_Output_servos = 2000;
+    short min_Output_servos = 1000;
 
+    short max_output_Pitch = 500;
+    short min_output_Pitch = -500;
+
+    double P;
+    double I;
+    double D;
 
     double err_Pitch;
     double prev_err_Pitch;
@@ -69,11 +79,14 @@ public class MainActivity extends Activity implements SensorEventListener {
     double output_Pitch;
     short [] output_servos;
     double onSensorChangedTimestampMs;
-    double intervalTimestampMs;
-
+    double intervalOnSensorEventMs;
+    long intervalTxRxMs;
 
     GraphViewSeries mErrorGraphViewSeries;
     GraphViewSeries mOutputGraphViewSeries;
+    GraphViewSeries mPGraphViewSeries;
+    GraphViewSeries mIGraphViewSeries;
+    GraphViewSeries mDGraphViewSeries;
 
 
     UsbDevice mDevice;
@@ -87,43 +100,72 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        bArduinoReady = false;
+        output_servos = new short[2];
         InitUI();
         InitConsole();
         InitGraphView();
         InitUsbConnection();
         InitSensor();
-       GetAllPreferences();
+        GetAllPreferences();
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-            PV_Pitch = getPitch(event);
+        PV_Pitch = getPitch(event);
+        err_Pitch = SP_Pitch - PV_Pitch;
 
+        intervalOnSensorEventMs = event.timestamp / 1000000 - onSensorChangedTimestampMs;
+        onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
+
+
+        if (swLoop.isChecked()) {
             if (err_Pitch > 40 || err_Pitch < -40) {
+                AddToConsole("Over pitch!");
                 swLoop.setChecked(false);
             }
-            intervalTimestampMs = event.timestamp / 1000000 - onSensorChangedTimestampMs;
-            onSensorChangedTimestampMs = event.timestamp / 1000000;
             PID();
+            mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, err_Pitch), true, 5000);
+            mOutputGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, output_Pitch), true, 5000);
+            mPGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, P), true, 5000);
+            mIGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, I), true, 5000);
+            mDGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, D), true, 5000);
+            updatetvSensor();
+        } else { //swLoop not checked
+            output_Pitch = 0;
+        }
+        output_servos[0] = (short) (servo_neutral - output_Pitch);
+        output_servos[1] = (short) (servo_neutral + output_Pitch);
 
-        if (bArduinoReady == true) {
-            sendSerialMessage();
-            readSerialMessage();
+        if (output_servos[0] < min_Output_servos) {
+            output_servos[0] = min_Output_servos;
         }
 
-            if (swLoop.isChecked()) {
-                mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, err_Pitch), true, 5000);
-                mOutputGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, -output_Pitch), true, 5000);
-                // mSP_PitchGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, SP_Pitch), true, 5000);
-                updatetvSensor();
+        if (output_servos[0] > max_Output_servos) {
+            output_servos[0] = max_Output_servos;
+        }
+
+        if (output_servos[1] < min_Output_servos) {
+            output_servos[1] = min_Output_servos;
+        }
+
+        if (output_servos[1] > max_Output_servos) {
+            output_servos[1] = max_Output_servos;
+        }
+
+
+        if (mUsbDeviceConnection != null) {
+            long beforeSend = System.nanoTime();
+            sendSerialMessage();
+            byte rxByte = readSerialMessage();
+
+            if (rxByte != 4) {
+                swLoop.setChecked(false);
+                AddToConsole("Connection error: " + rxByte);
             }
-
-
+            long afterSend = System.nanoTime();
+            intervalTxRxMs = (afterSend - beforeSend) / 1000000;
+        }
     }
-
-
-
 
 
     @Override
@@ -135,7 +177,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mRotationVector, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mRotationVector, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -145,6 +187,9 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     protected void AddToConsole(String text) {
+        SimpleDateFormat sdf = new SimpleDateFormat("[HH:mm:ss]");
+        String timeNow = sdf.format(new Date());
+        mStringBuilder.append(timeNow);
         mStringBuilder.append(text);
         mStringBuilder.append("\n");
         tvConsole.setText(mStringBuilder.toString());
@@ -158,12 +203,18 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     void updatetvSensor() {
-        tvSensor.setText("PV_Pitch: " + PV_Pitch + "\n"
-                + "SP_Pitch: " + SP_Pitch + "\n"
-                + "err_Pitch: " + err_Pitch + "\n"
-                + "output_Pitch: " + output_Pitch + "\n"
-                + "integral_Pitch: " + Double.toString(integral_Pitch) + "\n"
-                + "interval: " + Double.toString(intervalTimestampMs) + "\n");
+
+        DecimalFormat decimalFormat = new DecimalFormat("#");
+
+        tvSensor.setText("PV_Pitch: " + decimalFormat.format(PV_Pitch) + "\n"
+                + "SP_Pitch: " + decimalFormat.format(SP_Pitch) + "\n"
+                + "err_Pitch: " + decimalFormat.format(err_Pitch) + "\n"
+                + "output_Pitch (P;I;D): " + decimalFormat.format(output_Pitch) + "(" + decimalFormat.format(P) + ";" + decimalFormat.format(I) + ";" + decimalFormat.format(D) + ")\n"
+                + "output_Servo 0: " + output_servos[0] + "\n"
+                + "output_Servo 1: " + output_servos[1] + "\n"
+                + "integral_Pitch: " + decimalFormat.format(integral_Pitch) + "\n"
+                + "intervalSensorEvent: " + Double.toString(intervalOnSensorEventMs) + "\n"
+                + "intervalTxRx: " + Long.toString(intervalTxRxMs) + "\n");
     }
 
     void updateGraph() {
@@ -174,20 +225,18 @@ public class MainActivity extends Activity implements SensorEventListener {
     void sendSerialMessage(){
 
         if (mUsbEndpointOut!= null) {
-            byte[] mMessage = new byte[6];
-
-
-
-            mMessage[0] = (byte)(output_servos[0] & 0xff);
-            mMessage[1] = (byte)((output_servos[0] >> 8) & 0xff);
-            mMessage[2]=  (byte) 44;
-            mMessage[3] = (byte)(output_servos[1] & 0xff);
-            mMessage[4] = (byte)((output_servos[1] >> 8) & 0xff);
-            mMessage[5] = (byte) 10; //new line
+            byte[] mMessage = new byte[4];
+            ByteBuffer.wrap(mMessage, 0, 2).putShort(output_servos[0]);
+            ByteBuffer.wrap(mMessage, 2, 2).putShort(output_servos[1]);
+            //mMessage[4] = (byte) 10; //new line
             int txBytes = mUsbDeviceConnection.bulkTransfer(mUsbEndpointOut, mMessage, mMessage.length, TIMEOUT); //do in another thread
 
             if (txBytes > 0) {
 
+                //AddToConsole(txBytes + " byte sent");
+                //for (int i = 0; i < txBytes; i++) {
+                //    AddToConsole(">"+ i + "(dec):" + mMessage[i] + "," + "(hex):" + String.format("%02X ", mMessage[i]));
+                //}
             } else {
                 AddToConsole("Error no data transferred: " + txBytes);
             }
@@ -195,9 +244,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-    void readSerialMessage(){
+    private byte readSerialMessage() {
 
-        if (mUsbEndpointIn!= null) {
+        byte ret = 0;
             int rxBytes;
            // do{
             byte[] mMessage = new byte[64];
@@ -205,19 +254,20 @@ public class MainActivity extends Activity implements SensorEventListener {
             Arrays.fill(mMessage, (byte) 0);
 
             rxBytes = mUsbDeviceConnection.bulkTransfer(mUsbEndpointIn, mMessage, mMessage.length, TIMEOUT); //do in another thread
-
+        //AddToConsole(rxBytes + " byte(s) received");
             if (rxBytes > 0) {
-                AddToConsole(rxBytes + " byte received");
-                for (int i = 0;i < rxBytes;i++){
-                    AddToConsole( i + ":" + mMessage[i]);
-                }
+                ret = mMessage[0];
+
+                //String asciiMessage = new String(mMessage);
+                //AddToConsole("ASCII: " + asciiMessage);
+
             } else {
-                AddToConsole("Error no data received");
+                AddToConsole("Error data received");
+                ret = 0;
             }
-          //  }while( (rxBytes > 1) );
+        return ret;
         }
 
-    }
 
     private double  getPitch(SensorEvent event) {
         float[] mRotationMatrixFromVector = new float[9];
@@ -239,6 +289,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     {
         mErrorGraphViewSeries = new GraphViewSeries("Error",new GraphViewSeries.GraphViewSeriesStyle(Color.RED,1),new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
         mOutputGraphViewSeries = new GraphViewSeries("Output",new GraphViewSeries.GraphViewSeriesStyle(Color.BLUE,1),new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.GREEN, 1), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(Color.YELLOW, 1), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 1), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+
+
         //mSP_PitchGraphViewSeries = new GraphViewSeries("SetPoint",new GraphViewSeries.GraphViewSeriesStyle(Color.BLACK,1),new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
         X++;
         graphView = new LineGraphView(this, "GraphView");
@@ -303,7 +358,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     if (ret == true) {
                         AddToConsole("Interface successfully claimed");
                         mUsbDeviceConnection.controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0);
-                        AddToConsole("ControlTranfer Set");
+                        AddToConsole("ControlTransfer Set");
                     }
                 }
 
@@ -315,31 +370,24 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
 
-    private short[] PID(){
-        output_servos = new short[2];
+    void PID() {
+
+
+        if (((integral_Pitch + (err_Pitch * intervalOnSensorEventMs)) * Ki_Pitch < max_output_Pitch) && ((integral_Pitch + (err_Pitch * intervalOnSensorEventMs)) * Ki_Pitch > min_output_Pitch)) {
+            integral_Pitch = (integral_Pitch + (err_Pitch * intervalOnSensorEventMs));
+        }
+        P = Kp_Pitch * err_Pitch;
+        I = Ki_Pitch * integral_Pitch;
+        D = Kd_Pitch * (err_Pitch - prev_err_Pitch) / intervalOnSensorEventMs;
+        output_Pitch = P + I + D;
+
+        if (output_Pitch > max_output_Pitch) {
+            output_Pitch = max_output_Pitch;
+        }
+        if (output_Pitch < min_output_Pitch) {
+            output_Pitch = min_output_Pitch;
+        }
         prev_err_Pitch = err_Pitch;
-        err_Pitch = SP_Pitch - PV_Pitch;
-        integral_Pitch = integral_Pitch + (err_Pitch * intervalTimestampMs);
-
-        if (swLoop.isChecked()) {
-            output_Pitch = (Kp_Pitch * err_Pitch) +  (Ki_Pitch * integral_Pitch) + (Kd_Pitch *  (err_Pitch -  prev_err_Pitch)/ intervalTimestampMs);
-        }else{
-            output_Pitch = 0;
-            integral_Pitch = 0;
-        }
-
-        if (output_Pitch < min_Output){
-            output_Pitch = min_Output;
-        }
-
-        if (output_Pitch > max_Output){
-            output_Pitch = max_Output;
-        }
-
-
-        output_servos[0] = (short) (servo_neutral - output_Pitch);
-        output_servos[1] = (short) (servo_neutral + output_Pitch);
-        return output_servos;
     }
 
     void InitUI(){
@@ -347,26 +395,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         tvSensor = (TextView) findViewById(R.id.tvSensor);
         bPreferences = (Button) findViewById(R.id.bPreferences);
         bResetSP = (Button) findViewById(R.id.bResetSP);
-        bRX = (Button) findViewById(R.id.bRX);
-        bTX = (Button) findViewById(R.id.bTX);
 
         bPreferences.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 getFragmentManager().beginTransaction()
                         .replace(android.R.id.content, new PrefsFragment()).addToBackStack(null).commit();
-            }
-        });
-
-        bTX.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            sendSerialMessage();
-
-            }
-        });
-        bRX.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-                readSerialMessage();
             }
         });
 
@@ -402,8 +435,6 @@ public class MainActivity extends Activity implements SensorEventListener {
         Ki_Pitch = Double.parseDouble(sharedPref.getString("Ki_Pitch", "1"));
         Kd_Pitch = Double.parseDouble(sharedPref.getString("Kd_Pitch", "1"));
         SP_Pitch = Double.parseDouble(sharedPref.getString("SP_Pitch", "1"));
-
-
         servo_neutral = Short.parseShort(sharedPref.getString("servo_neutral", "1500"));
     }
 

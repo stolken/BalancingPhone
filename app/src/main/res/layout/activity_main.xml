@@ -5,73 +5,51 @@
     android:layout_height="fill_parent"
     android:orientation="vertical"
     android:paddingLeft="16dp"
-    android:paddingRight="16dp" >
+    android:paddingRight="16dp">
 
     <TextView
         android:id="@+id/tvSensor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autoText="false"
-    />
-
-
+        android:autoText="false" />
 
 
     <TextView
         android:id="@+id/tvConsole"
         android:layout_width="match_parent"
+        android:layout_height="400px"
         android:layout_gravity="center_horizontal|bottom"
-        android:layout_height="200px"
         android:autoText="false"
         android:background="#ff5891ff" />
 
 
-
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <Switch
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="PID"
             android:id="@+id/swLoop"
-            />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:text="PID" />
 
 
         <Button
+            android:id="@+id/bPreferences"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pfs"
-            android:id="@+id/bPreferences" />
+            android:text="Pfs" />
 
         <Button
+            android:id="@+id/bResetSP"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="RSP"
-            android:id="@+id/bResetSP" />
+            android:text="RSP" />
 
 
-
-        </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TX"
-        android:id="@+id/bTX" />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="RX"
-        android:id="@+id/bRX" />
-
-</LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
 
