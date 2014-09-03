@@ -36,9 +36,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7b992a4c-7716-4427-862c-999b58fdc543" name="Default" comment="graphs P, I, D&#10;New PID function">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/example/balancingphone/MainActivity.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/balancingphone/MainActivity.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/build/generated/source/r/debug/com/example/balancingphone/R.java" afterPath="$PROJECT_DIR$/app/build/generated/source/r/debug/com/example/balancingphone/R.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BalancingPhone.iws" />
@@ -1747,7 +1744,11 @@
       <created>1409416526369</created>
       <updated>1409416526369</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="graphs P, I, D&#10;New PID function">
+      <created>1409703093565</created>
+      <updated>1409703093565</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
