@@ -26,4 +26,9 @@
         android:inputType="numberDecimal|numberSigned"
         android:key="Kd_Pitch"
         android:title="Kd_Pitch" />
+    <EditTextPreference
+        android:defaultValue="20"
+        android:inputType="numberDecimal|numberSigned"
+        android:key="max_error"
+        android:title="max_error" />
 </PreferenceScreen>

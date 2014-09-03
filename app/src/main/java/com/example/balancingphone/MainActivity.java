@@ -69,6 +69,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     double I;
     double D;
 
+    double max_error;
+
     double err_Pitch;
     double prev_err_Pitch;
 
@@ -119,7 +121,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 
         if (swLoop.isChecked()) {
-            if (err_Pitch > 40 || err_Pitch < -40) {
+            if (err_Pitch > max_error || err_Pitch < -max_error) {
                 AddToConsole("Over pitch!");
                 swLoop.setChecked(false);
             }
@@ -299,13 +301,19 @@ public class MainActivity extends Activity implements SensorEventListener {
         graphView = new LineGraphView(this, "GraphView");
         graphView.setScrollable(true);
         graphView.getGraphViewStyle().setVerticalLabelsColor(Color.RED);
+        graphView.setShowLegend(true);
+        graphView.setLegendAlign(GraphView.LegendAlign.BOTTOM);
+        graphView.setLegendWidth(500);
         graphView.getGraphViewStyle().setNumVerticalLabels(3);
         graphView.getGraphViewStyle().setGridColor(Color.BLACK);
         graphView.getGraphViewStyle().setVerticalLabelsWidth(1);
-        graphView.setManualYAxisBounds(100, -100);
+        graphView.setManualYAxisBounds(500, -50);
         graphView.setViewPort(2, 3500);
         graphView.addSeries(mErrorGraphViewSeries);
         graphView.addSeries(mOutputGraphViewSeries);
+        graphView.addSeries(mPGraphViewSeries);
+        graphView.addSeries(mIGraphViewSeries);
+        graphView.addSeries(mDGraphViewSeries);
         //graphView.addSeries(mSP_PitchGraphViewSeries);
 
         LinearLayout layout = (LinearLayout) findViewById(R.id.mLayout);
@@ -435,6 +443,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         Ki_Pitch = Double.parseDouble(sharedPref.getString("Ki_Pitch", "1"));
         Kd_Pitch = Double.parseDouble(sharedPref.getString("Kd_Pitch", "1"));
         SP_Pitch = Double.parseDouble(sharedPref.getString("SP_Pitch", "1"));
+        max_error = Double.parseDouble(sharedPref.getString("max_error", "20"));
         servo_neutral = Short.parseShort(sharedPref.getString("servo_neutral", "1500"));
     }
 
