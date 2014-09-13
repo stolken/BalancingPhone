@@ -10,7 +10,7 @@
         android:id="@+id/myswitch"
         android:title=""
         android:showAsAction="always"
-        android:actionLayout="@layout/switch_layout"
+        android:actionLayout="@layout/switch_layout"/>  
 
         
         <item
