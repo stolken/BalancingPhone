@@ -6,9 +6,12 @@
         android:id="@+id/action_settings"
         android:title="Settings"/>
         
-        <item
-        android:id="@+id/action_StartStop"
-        android:title="StartStop"/>
+    <item
+        android:id="@+id/myswitch"
+        android:title=""
+        android:showAsAction="always"
+        android:actionLayout="@layout/switch_layout"
+
         
         <item
         android:id="@+id/action_ResetSP"
