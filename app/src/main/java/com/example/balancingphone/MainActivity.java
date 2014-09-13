@@ -453,6 +453,15 @@ public class MainActivity extends Activity implements SensorEventListener {
         mRotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
     }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {    
+    // Inflate the menu items for use in the action bar
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.main, menu);
+    return super.onCreateOptionsMenu(menu);
+        
+    }
 
     public  static class PrefsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
