@@ -21,17 +21,23 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.nio.ByteBuffer;
 //test webcommit
@@ -41,6 +47,13 @@ import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.LineGraphView;
 
 public class MainActivity extends Activity implements SensorEventListener {
+    //byte[] bytes = new byte[1];
+    static short servo_neutral;
+    static double SP_Pitch; //set point for pitch
+    static double max_error;
+    static double Kp_Pitch;
+    static double Ki_Pitch;
+    static double Kd_Pitch;
     UsbDeviceConnection mUsbDeviceConnection;
     UsbEndpoint mUsbEndpointIn;
     UsbEndpoint mUsbEndpointOut;
@@ -54,29 +67,16 @@ public class MainActivity extends Activity implements SensorEventListener {
     Button bTX;
     Button bResetSP;
     StringBuilder mStringBuilder;
-    //byte[] bytes = new byte[1];
-    short servo_neutral;
-    double SP_Pitch; //set point for pitch
     double PV_Pitch;
-
     short max_Output_servos = 2000;
     short min_Output_servos = 1000;
-
     short max_output_Pitch = 500;
     short min_output_Pitch = -500;
-
     double P;
     double I;
     double D;
-
-    double max_error;
-
     double err_Pitch;
     double prev_err_Pitch;
-
-    double Kp_Pitch;
-    double Ki_Pitch;
-    double Kd_Pitch;
     double integral_Pitch = 0;
     double output_Pitch;
     short [] output_servos;
@@ -109,12 +109,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         InitUsbConnection();
         InitSensor();
         GetAllPreferences();
+        updatetvSensor();
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         PV_Pitch = getPitch(event);
-        err_Pitch = SP_Pitch - PV_Pitch;
+        err_Pitch = (SP_Pitch - PV_Pitch);
 
         intervalOnSensorEventMs = event.timestamp / 1000000 - onSensorChangedTimestampMs;
         onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
@@ -316,7 +317,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         graphView.addSeries(mDGraphViewSeries);
         //graphView.addSeries(mSP_PitchGraphViewSeries);
 
-        LinearLayout layout = (LinearLayout) findViewById(R.id.mLayout);
+        RelativeLayout layout = (RelativeLayout) findViewById(R.id.mLayout);
         layout.addView(graphView);
     }
 
@@ -399,29 +400,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     void InitUI(){
-        swLoop = (Switch) findViewById(R.id.swLoop);
         tvSensor = (TextView) findViewById(R.id.tvSensor);
-        bPreferences = (Button) findViewById(R.id.bPreferences);
-        bResetSP = (Button) findViewById(R.id.bResetSP);
 
-        bPreferences.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                getFragmentManager().beginTransaction()
-                        .replace(android.R.id.content, new PrefsFragment()).addToBackStack(null).commit();
-            }
-        });
-
-        bResetSP.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                
-            }
-        });
-
-        swLoop.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                GetAllPreferences();
-            }
-        });
     }
 
     void ResetSP(){
@@ -437,8 +417,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-    void  GetAllPreferences(){
+    public void GetAllPreferences() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
         Kp_Pitch = Double.parseDouble(sharedPref.getString("Kp_Pitch", "1"));
         Ki_Pitch = Double.parseDouble(sharedPref.getString("Ki_Pitch", "1"));
         Kd_Pitch = Double.parseDouble(sharedPref.getString("Kd_Pitch", "1"));
@@ -455,22 +436,28 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
     
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {    
+    public boolean onCreateOptionsMenu(Menu menu) {
     // Inflate the menu items for use in the action bar
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.main, menu);
+        configureActionItem(menu);
     return super.onCreateOptionsMenu(menu);
+
     }
-    
+
+    private void configureActionItem(Menu menu) {
+        swLoop = (Switch) menu.findItem(R.id.swLoopItem).getActionView()
+                .findViewById(R.id.swLoop);
+
+        // add.setOnEditorActionListener(this);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     // Handle presses on the action bar items
     switch (item.getItemId()) {
         case R.id.action_ResetSP:
             ResetSP();
-        return true;
-        case R.id.action_settings:
-        getFragmentManager().beginTransaction().replace(android.R.id.content, new PrefsFragment()).addToBackStack(null).commit();
         return true;
         case R.id.action_settings:
         getFragmentManager().beginTransaction().replace(android.R.id.content, new PrefsFragment()).addToBackStack(null).commit();
@@ -483,7 +470,6 @@ public class MainActivity extends Activity implements SensorEventListener {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.preferences);
         }
@@ -492,7 +478,6 @@ public class MainActivity extends Activity implements SensorEventListener {
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View view = super.onCreateView(inflater, container, savedInstanceState);
             view.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
-
             return view;
         }
 
@@ -511,7 +496,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-
+            // just update all
+            GetAllPreferences();
         }
 
     }

@@ -7,13 +7,12 @@
         android:title="Settings"/>
         
     <item
-        android:id="@+id/myswitch"
-        android:title=""
+        android:id="@+id/swLoopItem"
+        android:actionLayout="@layout/switch_layout"
         android:showAsAction="always"
-        android:actionLayout="@layout/switch_layout"/>  
+        android:title="" />
 
-        
-        <item
+    <item
         android:id="@+id/action_ResetSP"
         android:title="ResetSP"/>  
         
