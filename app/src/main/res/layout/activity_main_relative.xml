@@ -3,15 +3,14 @@
     android:id="@+id/mLayout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/tvSensor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autoText="false" />
+        android:autoText="false"
+        android:textColor="@android:color/holo_blue_dark" />
 
 
     <TextView
@@ -19,6 +18,6 @@
         android:layout_width="match_parent"
         android:layout_height="400px"
         android:layout_below="@id/tvSensor"
-        android:background="#ff5891ff" />
+        android:textColor="@android:color/darker_gray" />
 
 </RelativeLayout>

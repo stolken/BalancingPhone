@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -47,6 +48,7 @@ import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.LineGraphView;
 
 public class MainActivity extends Activity implements SensorEventListener {
+    public static Context context;
     //byte[] bytes = new byte[1];
     static short servo_neutral;
     static double SP_Pitch; //set point for pitch
@@ -83,7 +85,6 @@ public class MainActivity extends Activity implements SensorEventListener {
     double onSensorChangedTimestampMs;
     double intervalOnSensorEventMs;
     long intervalTxRxMs;
-
     GraphViewSeries mErrorGraphViewSeries;
     GraphViewSeries mOutputGraphViewSeries;
     GraphViewSeries mPGraphViewSeries;
@@ -98,17 +99,29 @@ public class MainActivity extends Activity implements SensorEventListener {
     private SensorManager mSensorManager;
     private Sensor mRotationVector;
 
+    public static void GetAllPreferences(Context ctxt) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctxt);
+        Kp_Pitch = Double.parseDouble(sharedPref.getString("Kp_Pitch", "1"));
+        Ki_Pitch = Double.parseDouble(sharedPref.getString("Ki_Pitch", "1"));
+        Kd_Pitch = Double.parseDouble(sharedPref.getString("Kd_Pitch", "1"));
+        SP_Pitch = Double.parseDouble(sharedPref.getString("SP_Pitch", "1"));
+        max_error = Double.parseDouble(sharedPref.getString("max_error", "20"));
+        servo_neutral = Short.parseShort(sharedPref.getString("servo_neutral", "1500"));
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_relative);
+        context = this;
         output_servos = new short[2];
         InitUI();
         InitConsole();
         InitGraphView();
         InitUsbConnection();
         InitSensor();
-        GetAllPreferences();
+        GetAllPreferences(context);
         updatetvSensor();
     }
 
@@ -127,11 +140,11 @@ public class MainActivity extends Activity implements SensorEventListener {
                 swLoop.setChecked(false);
             }
             PID();
-            mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, err_Pitch), true, 5000);
-            mOutputGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, output_Pitch), true, 5000);
-            mPGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, P), true, 5000);
-            mIGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, I), true, 5000);
-            mDGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, D), true, 5000);
+            mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, err_Pitch / max_error * 100), true, 5000);
+            mOutputGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, output_Pitch / max_output_Pitch * 100), true, 5000);
+            mPGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, P / max_output_Pitch * 100), true, 5000);
+            mIGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, I / max_output_Pitch * 100), true, 5000);
+            mDGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, D / max_output_Pitch * 100), true, 5000);
             updatetvSensor();
         } else { //swLoop not checked
             output_Pitch = 0;
@@ -170,12 +183,9 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
     }
 
-
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // TODO Auto-generated method stub
     }
-
 
     @Override
     protected void onResume() {
@@ -227,7 +237,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     void sendSerialMessage(){
 
-        if (mUsbEndpointOut!= null) {
+        if (mUsbEndpointOut != null) {
             byte[] mMessage = new byte[4];
             ByteBuffer.wrap(mMessage, 0, 2).putShort(output_servos[0]);
             ByteBuffer.wrap(mMessage, 2, 2).putShort(output_servos[1]);
@@ -250,65 +260,67 @@ public class MainActivity extends Activity implements SensorEventListener {
     private byte readSerialMessage() {
 
         byte ret = 0;
-            int rxBytes;
-           // do{
-            byte[] mMessage = new byte[64];
-            // reinitialize read value byte array
-            Arrays.fill(mMessage, (byte) 0);
+        int rxBytes;
+        // do{
+        byte[] mMessage = new byte[64];
+        // reinitialize read value byte array
+        Arrays.fill(mMessage, (byte) 0);
 
-            rxBytes = mUsbDeviceConnection.bulkTransfer(mUsbEndpointIn, mMessage, mMessage.length, TIMEOUT); //do in another thread
+        rxBytes = mUsbDeviceConnection.bulkTransfer(mUsbEndpointIn, mMessage, mMessage.length, TIMEOUT); //do in another thread
         //AddToConsole(rxBytes + " byte(s) received");
-            if (rxBytes > 0) {
-                ret = mMessage[0];
+        if (rxBytes > 0) {
+            ret = mMessage[0];
 
-                //String asciiMessage = new String(mMessage);
-                //AddToConsole("ASCII: " + asciiMessage);
+            //String asciiMessage = new String(mMessage);
+            //AddToConsole("ASCII: " + asciiMessage);
 
-            } else {
-                AddToConsole("Error data received");
-                ret = 0;
-            }
-        return ret;
+        } else {
+            AddToConsole("Error data received");
+            ret = 0;
         }
+        return ret;
+    }
 
-
-    private double  getPitch(SensorEvent event) {
+    private double getPitch(SensorEvent event) {
         float[] mRotationMatrixFromVector = new float[9];
         float[] mRotationMatrix = new float[9];
         float[] orientationVals = new float[3];
 
-            // Convert the rotation-vector to a 4x4 matrix.
-            SensorManager.getRotationMatrixFromVector(mRotationMatrixFromVector, event.values);
-            SensorManager.remapCoordinateSystem(mRotationMatrixFromVector, SensorManager.AXIS_X, SensorManager.AXIS_Z, mRotationMatrix);
-            SensorManager.getOrientation(mRotationMatrix, orientationVals);
+        // Convert the rotation-vector to a 4x4 matrix.
+        SensorManager.getRotationMatrixFromVector(mRotationMatrixFromVector, event.values);
+        SensorManager.remapCoordinateSystem(mRotationMatrixFromVector, SensorManager.AXIS_X, SensorManager.AXIS_Z, mRotationMatrix);
+        SensorManager.getOrientation(mRotationMatrix, orientationVals);
 
-            // Optionally convert the result from radians to degrees
-            return (float) Math.toDegrees(orientationVals[1]);
+        // Optionally convert the result from radians to degrees
+        return (float) Math.toDegrees(orientationVals[1]);
 
 
 
     }
-    void InitGraphView()
-    {
-        mErrorGraphViewSeries = new GraphViewSeries("Error",new GraphViewSeries.GraphViewSeriesStyle(Color.RED,1),new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mOutputGraphViewSeries = new GraphViewSeries("Output",new GraphViewSeries.GraphViewSeriesStyle(Color.BLUE,1),new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.GREEN, 1), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(Color.YELLOW, 1), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 1), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+
+    void InitGraphView() {
+        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(Color.RED, 4), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(Color.BLUE, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.GREEN, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(Color.YELLOW, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
 
 
         //mSP_PitchGraphViewSeries = new GraphViewSeries("SetPoint",new GraphViewSeries.GraphViewSeriesStyle(Color.BLACK,1),new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
         X++;
-        graphView = new LineGraphView(this, "GraphView");
+        graphView = new LineGraphView(this, "PID");
         graphView.setScrollable(true);
         graphView.getGraphViewStyle().setVerticalLabelsColor(Color.RED);
         graphView.setShowLegend(true);
-        graphView.setLegendAlign(GraphView.LegendAlign.BOTTOM);
-        graphView.setLegendWidth(500);
+        graphView.getGraphViewStyle().setTextSize(40);
+        graphView.setLegendAlign(GraphView.LegendAlign.MIDDLE);
+        //graphView.setLegendWidth(500);
         graphView.getGraphViewStyle().setNumVerticalLabels(3);
-        graphView.getGraphViewStyle().setGridColor(Color.BLACK);
+        graphView.getGraphViewStyle().setGridColor(Color.GRAY);
         graphView.getGraphViewStyle().setVerticalLabelsWidth(1);
-        graphView.setManualYAxisBounds(500, -50);
+        graphView.setHorizontalLabels(null);
+        // graphView.getGraphViewStyle().setNumHorizontalLabels(0);
+        graphView.setManualYAxisBounds(100, -100);
         graphView.setViewPort(2, 3500);
         graphView.addSeries(mErrorGraphViewSeries);
         graphView.addSeries(mOutputGraphViewSeries);
@@ -378,7 +390,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-
     void PID() {
 
 
@@ -399,33 +410,23 @@ public class MainActivity extends Activity implements SensorEventListener {
         prev_err_Pitch = err_Pitch;
     }
 
-    void InitUI(){
+    void InitUI() {
         tvSensor = (TextView) findViewById(R.id.tvSensor);
 
     }
 
     void ResetSP(){
         SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(this).edit();
-        edit.putString("SP_Pitch",Double.toString(PV_Pitch));
+        edit.putString("SP_Pitch", Double.toString(PV_Pitch));
         edit.apply();
+        GetAllPreferences(this);
     }
 
-    void InitConsole(){
+    void InitConsole() {
         tvConsole = (TextView) findViewById(R.id.tvConsole);
-                mStringBuilder = new StringBuilder();
+        mStringBuilder = new StringBuilder();
         tvConsole.setMovementMethod(new ScrollingMovementMethod());
 
-    }
-
-    public void GetAllPreferences() {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-
-        Kp_Pitch = Double.parseDouble(sharedPref.getString("Kp_Pitch", "1"));
-        Ki_Pitch = Double.parseDouble(sharedPref.getString("Ki_Pitch", "1"));
-        Kd_Pitch = Double.parseDouble(sharedPref.getString("Kd_Pitch", "1"));
-        SP_Pitch = Double.parseDouble(sharedPref.getString("SP_Pitch", "1"));
-        max_error = Double.parseDouble(sharedPref.getString("max_error", "20"));
-        servo_neutral = Short.parseShort(sharedPref.getString("servo_neutral", "1500"));
     }
 
     void InitSensor(){
@@ -477,7 +478,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View view = super.onCreateView(inflater, container, savedInstanceState);
-            view.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+            view.setBackgroundColor(getResources().getColor(android.R.color.background_dark));
             return view;
         }
 
@@ -497,9 +498,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             // just update all
-            GetAllPreferences();
+            GetAllPreferences(context);
+
         }
 
     }
 
+
 }
+
+
