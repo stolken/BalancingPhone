@@ -1,13 +1,13 @@
 private static final String TEXT_TYPE = " TEXT";
 private static final String COMMA_SEP = ",";
-private static final String SQL_CREATE_ENTRIES =    "CREATE TABLE " + FeedEntry.TABLE_NAME + " (" +    FeedEntry._ID + " INTEGER PRIMARY KEY," +    FeedEntry.COLUMN_NAME_ENTRY_ID + TEXT_TYPE + COMMA_SEP +    FeedEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +    ... // Any other options for the CREATE command    " )";
-private static final String SQL_DELETE_ENTRIES =    "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME;
+private static final String SQL_CREATE_ENTRIES =    "CREATE TABLE LOG (ID INETEGER PRIMARY KEY , TIMESTAMPISO8601 TEXT, SP REAL , PV REAL , ERROR REAL , kP REAL , kI REAL , kD REAL , P REAL , I REAL , D REAL)";
+private static final String SQL_DELETE_ENTRIES =    "DROP TABLE IF EXISTS LOG";
 
-public class FeedReaderDbHelper extends SQLiteOpenHelper {
+public class DbHelper extends SQLiteOpenHelper {
 // If you change the database schema, you must increment the database version.    
 public static final int DATABASE_VERSION = 1;    
-public static final String DATABASE_NAME = "FeedReader.db";    
-public FeedReaderDbHelper(Context context) {        
+public static final String DATABASE_NAME = "Database.db";    
+public DbHelper(Context context) {        
 super(context, DATABASE_NAME, null, DATABASE_VERSION);    
 }    
 public void onCreate(SQLiteDatabase db) {
