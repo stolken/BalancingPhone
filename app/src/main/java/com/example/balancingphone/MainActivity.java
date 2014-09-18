@@ -6,11 +6,13 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+
 import android.app.Activity;
-import android.app.Application;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -22,7 +24,6 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.text.Layout;
@@ -34,11 +35,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.nio.ByteBuffer;
 //test webcommit
@@ -64,12 +63,9 @@ public class MainActivity extends Activity implements SensorEventListener {
     TextView tvSensor;
     TextView tvConsole;
     Switch swLoop;
-    Button bPreferences;
-    Button bRX;
-    Button bTX;
-    Button bResetSP;
+
     StringBuilder mStringBuilder;
-    double PV_Pitch;
+    double PV;
     short max_Output_servos = 2000;
     short min_Output_servos = 1000;
     short max_output_Pitch = 500;
@@ -77,11 +73,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     double P;
     double I;
     double D;
-    double err_Pitch;
-    double prev_err_Pitch;
+    double error;
+    double prev_error;
     double integral_Pitch = 0;
     double output_Pitch;
-    short [] output_servos;
+    short[] output_servos;
     double onSensorChangedTimestampMs;
     double intervalOnSensorEventMs;
     long intervalTxRxMs;
@@ -90,6 +86,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     GraphViewSeries mPGraphViewSeries;
     GraphViewSeries mIGraphViewSeries;
     GraphViewSeries mDGraphViewSeries;
+    SQLiteDatabase mDb;
 
 
     UsbDevice mDevice;
@@ -123,29 +120,32 @@ public class MainActivity extends Activity implements SensorEventListener {
         InitSensor();
         GetAllPreferences(context);
         updatetvSensor();
+        DbHelper mDbHelper = new DbHelper(this);
+        mDb = mDbHelper.getWritableDatabase();
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        PV_Pitch = getPitch(event);
-        err_Pitch = (SP_Pitch - PV_Pitch);
+        PV = getPitch(event);
+        error = (SP_Pitch - PV);
 
         intervalOnSensorEventMs = event.timestamp / 1000000 - onSensorChangedTimestampMs;
         onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
 
 
         if (swLoop.isChecked()) {
-            if (err_Pitch > max_error || err_Pitch < -max_error) {
+            if (error > max_error || error < -max_error) {
                 AddToConsole("Over pitch!");
                 swLoop.setChecked(false);
             }
             PID();
-            mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, err_Pitch / max_error * 100), true, 5000);
+            mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, error / max_error * 100), true, 5000);
             mOutputGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, output_Pitch / max_output_Pitch * 100), true, 5000);
             mPGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, P / max_output_Pitch * 100), true, 5000);
             mIGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, I / max_output_Pitch * 100), true, 5000);
             mDGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, D / max_output_Pitch * 100), true, 5000);
             updatetvSensor();
+            dbInsert();
         } else { //swLoop not checked
             output_Pitch = 0;
         }
@@ -219,9 +219,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         DecimalFormat decimalFormat = new DecimalFormat("#");
 
-        tvSensor.setText("PV_Pitch: " + decimalFormat.format(PV_Pitch) + "\n"
+        tvSensor.setText("PV: " + decimalFormat.format(PV) + "\n"
                 + "SP_Pitch: " + decimalFormat.format(SP_Pitch) + "\n"
-                + "err_Pitch: " + decimalFormat.format(err_Pitch) + "\n"
+                + "error: " + decimalFormat.format(error) + "\n"
                 + "output_Pitch (P;I;D): " + decimalFormat.format(output_Pitch) + "(" + decimalFormat.format(P) + ";" + decimalFormat.format(I) + ";" + decimalFormat.format(D) + ")\n"
                 + "output_Servo 0: " + output_servos[0] + "\n"
                 + "output_Servo 1: " + output_servos[1] + "\n"
@@ -235,7 +235,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         X++;
     }
 
-    void sendSerialMessage(){
+    void sendSerialMessage() {
 
         if (mUsbEndpointOut != null) {
             byte[] mMessage = new byte[4];
@@ -295,7 +295,6 @@ public class MainActivity extends Activity implements SensorEventListener {
         return (float) Math.toDegrees(orientationVals[1]);
 
 
-
     }
 
     void InitGraphView() {
@@ -333,7 +332,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         layout.addView(graphView);
     }
 
-    void InitUsbConnection(){
+    void InitUsbConnection() {
 
         //Arrays.fill(bytes, (byte) 0);
         UsbManager mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -393,12 +392,12 @@ public class MainActivity extends Activity implements SensorEventListener {
     void PID() {
 
 
-        if (((integral_Pitch + (err_Pitch * intervalOnSensorEventMs)) * Ki_Pitch < max_output_Pitch) && ((integral_Pitch + (err_Pitch * intervalOnSensorEventMs)) * Ki_Pitch > min_output_Pitch)) {
-            integral_Pitch = (integral_Pitch + (err_Pitch * intervalOnSensorEventMs));
+        if (((integral_Pitch + (error * intervalOnSensorEventMs)) * Ki_Pitch < max_output_Pitch) && ((integral_Pitch + (error * intervalOnSensorEventMs)) * Ki_Pitch > min_output_Pitch)) {
+            integral_Pitch = (integral_Pitch + (error * intervalOnSensorEventMs));
         }
-        P = Kp_Pitch * err_Pitch;
+        P = Kp_Pitch * error;
         I = Ki_Pitch * integral_Pitch;
-        D = Kd_Pitch * (err_Pitch - prev_err_Pitch) / intervalOnSensorEventMs;
+        D = Kd_Pitch * (error - prev_error) / intervalOnSensorEventMs;
         output_Pitch = P + I + D;
 
         if (output_Pitch > max_output_Pitch) {
@@ -407,7 +406,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         if (output_Pitch < min_output_Pitch) {
             output_Pitch = min_output_Pitch;
         }
-        prev_err_Pitch = err_Pitch;
+        prev_error = error;
     }
 
     void InitUI() {
@@ -415,9 +414,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-    void ResetSP(){
+    void ResetSP() {
         SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(this).edit();
-        edit.putString("SP_Pitch", Double.toString(PV_Pitch));
+        edit.putString("SP_Pitch", Double.toString(PV));
         edit.apply();
         GetAllPreferences(this);
     }
@@ -429,20 +428,30 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-    void InitSensor(){
+    void dbInsert() {
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+        values.put("kP", Kp_Pitch);
+        // Insert the new row, returning the primary key value of the new row
+        long newRowId;
+        newRowId = mDb.insert(
+                "LOG",
+                "ID",
+                values);
+    }
 
+    void InitSensor() {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mRotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-    // Inflate the menu items for use in the action bar
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.main, menu);
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
         configureActionItem(menu);
-    return super.onCreateOptionsMenu(menu);
+        return super.onCreateOptionsMenu(menu);
 
     }
 
@@ -455,18 +464,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle presses on the action bar items
-    switch (item.getItemId()) {
-        case R.id.action_ResetSP:
-            ResetSP();
-        return true;
-        case R.id.action_settings:
-        getFragmentManager().beginTransaction().replace(android.R.id.content, new PrefsFragment()).addToBackStack(null).commit();
-        return true;
-        default:
-        return super.onOptionsItemSelected(item);    }}
+        // Handle presses on the action bar items
+        switch (item.getItemId()) {
+            case R.id.action_ResetSP:
+                ResetSP();
+                return true;
+            case R.id.action_settings:
+                getFragmentManager().beginTransaction().replace(android.R.id.content, new PrefsFragment()).addToBackStack(null).commit();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
-    public  static class PrefsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+    public static class PrefsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
