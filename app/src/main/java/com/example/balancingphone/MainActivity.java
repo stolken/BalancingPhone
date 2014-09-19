@@ -428,17 +428,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-    void dbInsert() {
-        // Create a new map of values, where column names are the keys
-        ContentValues values = new ContentValues();
-        values.put("kP", Kp_Pitch);
-        // Insert the new row, returning the primary key value of the new row
-        long newRowId;
-        newRowId = mDb.insert(
-                "LOG",
-                "ID",
-                values);
-    }
 
     void InitSensor() {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
