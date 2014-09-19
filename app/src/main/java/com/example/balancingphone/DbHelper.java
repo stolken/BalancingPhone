@@ -32,4 +32,46 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
+    
+    public long AddRecord(long timestamp, double latitude, double longitude,
+			double altitude, float speed, float accuracy, float bearing,
+			double sessionid) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		ContentValues contentvalues = new ContentValues();
+		contentvalues.put("timestamp", timestamp);
+		contentvalues.put("latitude", latitude);
+		contentvalues.put("longitude", longitude);
+		contentvalues.put("altitude", altitude);
+		contentvalues.put("speed", speed);
+		contentvalues.put("accuracy", accuracy);
+		contentvalues.put("bearing", bearing);
+		contentvalues.put("sessionid", sessionid);
+		contentvalues.put("airport1", airport1);
+		contentvalues.put("airport2", airport2);
+		contentvalues.put("airport3", airport3);
+		contentvalues.put("airport4", airport4);
+		
+				
+
+		long rowid = db.insert("log", null, contentvalues);
+		db.close();
+		return rowid;
+	}
+	
+	public String GetLastSessionID(double sessionid) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db
+				.query("log",
+						new String[] { "time((max(timestamp) - min(timestamp)) / 1000,'unixepoch') last" },
+						"sessionid=" + sessionid, null, "sessionid", null, null);
+
+		cursor.moveToFirst();
+		String last = cursor.getString(0);
+
+		return last;
+	}
+
+
+    
 }
