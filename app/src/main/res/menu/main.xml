@@ -16,5 +16,9 @@
         android:id="@+id/action_ResetSP"
         android:title="ResetSP"/>  
         
+            <item
+        android:id="@+id/action_ListSession"
+        android:title="History..."/> 
+        
 
 </menu>
