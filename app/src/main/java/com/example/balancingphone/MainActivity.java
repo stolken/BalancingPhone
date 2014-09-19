@@ -472,8 +472,13 @@ public class MainActivity extends Activity implements SensorEventListener {
             case R.id.action_settings:
                 getFragmentManager().beginTransaction().replace(android.R.id.content, new PrefsFragment()).addToBackStack(null).commit();
                 return true;
+            case R.id.action_ListSession:
+                Intent ListSessionActivity = new Intent(getBaseContext(), ListSession.class);
+			startActivity(ListSessionActivity); 
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
+                
         }
     }
 
