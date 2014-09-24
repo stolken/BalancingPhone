@@ -21,14 +21,14 @@
                 <TextView />
 
                 <TextView
-                    style="@style/MediumColor"
+
                     android:text="Session" />
             </TableRow>
 
             <TableRow >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="ID : " />
 
@@ -41,7 +41,7 @@
             <TableRow >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="From : " />
 
@@ -54,7 +54,7 @@
             <TableRow >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="To : " />
 
@@ -67,7 +67,7 @@
             <TableRow >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="Last : " />
 
@@ -80,7 +80,7 @@
             <TableRow >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="Avg accuracy : " />
 
@@ -93,7 +93,7 @@
             <TableRow >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="Updates : " />
 
@@ -108,14 +108,14 @@
                 <TextView />
 
                 <TextView
-                    style="@style/MediumColor"
+
                     android:text="Parameters" />
             </TableRow>
 
             <TableRow android:id="@+id/rowClampToGround" >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:layout_gravity="center_vertical"
                     android:gravity="right"
                     android:text="Clamp to Ground : " />
@@ -133,7 +133,7 @@
             <TableRow android:id="@+id/rowCameraRange" >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="Camera range : " />
 
@@ -142,8 +142,10 @@
                     android:id="@+id/etCameraRange"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="50dp"
+                    android:layout_marginRight="50dp"
                     android:inputType="number"
-                    android:lines="1" android:layout_marginLeft="50dp" android:layout_marginRight="50dp">
+                    android:lines="1">
 
                 </EditText>
             </TableRow>
@@ -151,7 +153,7 @@
             <TableRow android:id="@+id/rowCameraTilt" >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="Camera tilt : " />
 
@@ -160,9 +162,10 @@
                     android:id="@+id/etCameraTilt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="50dp"
+                    android:layout_marginRight="50dp"
                     android:inputType="number"
-                    android:lines="1"
-                    android:layout_marginLeft="50dp" android:layout_marginRight="50dp" >
+                    android:lines="1">
 
                 </EditText>
             </TableRow>
@@ -170,7 +173,7 @@
             <TableRow android:id="@+id/rowModel" >
 
                 <TextView
-                    style="@style/MediumGrey"
+
                     android:gravity="right"
                     android:text="Model : " />
 
@@ -183,7 +186,6 @@
             <TableRow >
 
                 <TextView
-                    style="@style/MediumGrey"
                     android:layout_gravity="center_vertical"
                     android:gravity="right"
                     android:text="Send by email : " />
@@ -200,9 +202,9 @@
             android:id="@+id/bExport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Export"
-            android:layout_marginLeft="50dp" 
-            android:layout_marginRight="50dp" />
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:text="Export" />
     </LinearLayout>
 
 </ScrollView>
