@@ -33,6 +33,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -77,6 +78,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     double onSensorChangedTimestampMs;
     double intervalOnSensorEventMs;
     long intervalTxRxMs;
+    int SessionID;
     GraphViewSeries mErrorGraphViewSeries;
     GraphViewSeries mOutputGraphViewSeries;
     GraphViewSeries mPGraphViewSeries;
@@ -84,6 +86,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     GraphViewSeries mDGraphViewSeries;
     //SQLiteDatabase mDb;
     DbHelper mDbHelper;
+    long rowid;
 
     UsbDevice mDevice;
     int TIMEOUT = 1000;
@@ -141,7 +144,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             mIGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, I / max_output * 100), true, 5000);
             mDGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, D / max_output * 100), true, 5000);
             updatetvSensor();
-            mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), 1, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral);
+            rowid = mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral);
 
         } else { //swLoop not checked
             output = 0;
@@ -216,7 +219,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     void updatetvSensor() {
 
-        DecimalFormat decimalFormat = new DecimalFormat("#");
+        DecimalFormat decimalFormat = new DecimalFormat("#.#");
 
         tvSensor.setText("PV: " + decimalFormat.format(PV) + "\n"
                 + "SP: " + decimalFormat.format(SP) + "\n"
@@ -226,7 +229,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 + "output_Servo 1: " + output_servos[1] + "\n"
                 + "integral: " + decimalFormat.format(integral) + "\n"
                 + "intervalSensorEvent: " + Double.toString(intervalOnSensorEventMs) + "\n"
-                + "intervalTxRx: " + Long.toString(intervalTxRxMs) + "\n");
+                + "intervalTxRx: " + Long.toString(intervalTxRxMs) + "\n"
+                + "sessionid: " + SessionID + "\n");
     }
 
     private String ConvertToIso8601(long timestamp) {
@@ -408,6 +412,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     void InitUI() {
         tvSensor = (TextView) findViewById(R.id.tvSensor);
 
+
     }
 
     void ResetSP() {
@@ -415,6 +420,8 @@ public class MainActivity extends Activity implements SensorEventListener {
         edit.putString("SP", Double.toString(PV));
         edit.apply();
         GetAllPreferences(this);
+        AddToConsole("New SP: " + SP);
+
     }
 
     void InitConsole() {
@@ -443,8 +450,12 @@ public class MainActivity extends Activity implements SensorEventListener {
     private void configureActionItem(Menu menu) {
         swLoop = (Switch) menu.findItem(R.id.swLoopItem).getActionView()
                 .findViewById(R.id.swLoop);
+        swLoop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SessionID = mDbHelper.GetNewSessionID();
+            }
+        });
 
-        // add.setOnEditorActionListener(this);
     }
 
     @Override

@@ -4,8 +4,8 @@
     <EditTextPreference
         android:defaultValue="1"
         android:inputType="numberDecimal|numberSigned"
-        android:key="SP_Pitch"
-        android:title="SP_Pitch" />
+        android:key="SP"
+        android:title="SP" />
     <EditTextPreference
         android:defaultValue="1500"
         android:inputType="numberDecimal|numberSigned"
@@ -14,18 +14,18 @@
     <EditTextPreference
         android:defaultValue="2"
         android:inputType="numberDecimal|numberSigned"
-        android:key="Kp_Pitch"
-        android:title="Kp_Pitch" />
+        android:key="Kp"
+        android:title="Kp" />
     <EditTextPreference
         android:defaultValue="2"
         android:inputType="numberDecimal|numberSigned"
-        android:key="Ki_Pitch"
-        android:title="Ki_Pitch" />
+        android:key="Ki"
+        android:title="Ki" />
     <EditTextPreference
         android:defaultValue="2"
         android:inputType="numberDecimal|numberSigned"
-        android:key="Kd_Pitch"
-        android:title="Kd_Pitch" />
+        android:key="Kd"
+        android:title="Kd" />
     <EditTextPreference
         android:defaultValue="20"
         android:inputType="numberDecimal|numberSigned"

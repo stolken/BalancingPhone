@@ -78,16 +78,15 @@ public class DbHelper extends SQLiteOpenHelper {
         db.close();
 		return rowid;
 	}
-	
-	public String GetLastSessionID(double sessionid) {
-		SQLiteDatabase db = this.getWritableDatabase();
+
+    public int GetNewSessionID() {
+        SQLiteDatabase db = this.getWritableDatabase();
 		Cursor cursor = db
-				.query("log",
-						new String[] { "time((max(timestamp) - min(timestamp)) / 1000,'unixepoch') last" },
-						"sessionid=" + sessionid, null, "sessionid", null, null);
+                .query("log", new String[]{"sessionid"}, null, null,
+                        "sessionid", null, "sessionid" + " DESC", "1");
 
 		cursor.moveToFirst();
-		String last = cursor.getString(0);
+        int last = cursor.getInt(0) + 1;
 
 		return last;
 	}
@@ -96,17 +95,29 @@ public class DbHelper extends SQLiteOpenHelper {
         // select datetime(substr(max(timestamp),0,11),'unixepoch') stop from
         // locations group by sessionid;
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db
-                .query("locations",
-                        new String[]{
-                                "sessionid _id",
-                                "datetime(min(timestamp) / 1000,'unixepoch') start",
-                                "datetime(max(timestamp) / 1000,'unixepoch') stop",
-                                "sessionid",
-                                "count(*) count",
-                                "time((max(timestamp) - min(timestamp)) / 1000,'unixepoch') last",
-                                "avg(accuracy) avgaccuracy"}, null, null,
-                        "sessionid", null, "sessionid" + " DESC");
+        Cursor cursor = db.query("log", new String[]{"sessionid _id", "sessionid"}, null, null, "sessionid", null, "sessionid" + " DESC");
+
+        return cursor;
+    }
+
+    ;
+
+    public int GetUpdatesCount(double sessionid) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.query("log",
+                new String[]{"count(*) count"}, "sessionid=" + sessionid,
+                null, "sessionid", null, null);
+
+        cursor.moveToFirst();
+        int UpdatesCount = cursor.getInt(0);
+        return UpdatesCount;
+    }
+
+    public Cursor GetCursorSession(int sessionid) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.query("log", new String[]{
+                "timestamp", "sessionid", "sp", "pv", "error", "kp", "ki", "kd", "p", "i", "d", "output", "integral"}, "sessionid="
+                + sessionid, null, null, null, "timestamp");
 
         return cursor;
     }
