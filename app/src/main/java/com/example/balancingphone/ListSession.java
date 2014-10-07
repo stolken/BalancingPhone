@@ -41,6 +41,7 @@ public class ListSession extends ListActivity {
     final int colD = 10;
     final int colOutput = 11;
     final int colIntegral = 12;
+    int SessionID;
 
     DbHelper mDbHelper;
 
@@ -49,34 +50,22 @@ public class ListSession extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.customlistviewlayout);
         mDbHelper = new DbHelper(getApplicationContext());
-
         Cursor cursor = mDbHelper.GetCursorListviewExport();
-        // startManagingCursor(cursor);
-        ListAdapter listadapter = new SimpleCursorAdapter(this, R.layout.customlistviewrow, cursor, new String[]{"sessionid"}, new int[]{R.id.sessionID}, 0);
-        // Bind to our new adapter.
+        ListAdapter listadapter = new SimpleCursorAdapter(this, R.layout.customlistviewrow, cursor, new String[]{"sessionid", "count", "duration", "start", "stop"},
+                new int[]{R.id.sessionID, R.id.count, R.id.duration, R.id.start, R.id.stop},
+                0);
         setListAdapter(listadapter);
     }
 
     protected void onListItemClick(ListView l, View v, int position, long id) {
+        SessionID = (int) id;
+        AsyncTaskHelper ExportTask = new AsyncTaskHelper();
+        ExportTask.execute();
 
 
-        //Intent ExportActivity = new Intent(getBaseContext(), Prefs_Export.class);
-
-        //ExportActivity.putExtra("sessionid", (int)id);
-        //startActivity(ExportActivity);
     }
 
 
-    public String ConvertTimeStampToDate(int TimeStamp) {
-        Date d = new Date(TimeStamp);
-
-        SimpleDateFormat simpledateformat = new SimpleDateFormat(
-                "yyyy'-'MM'-'dd'T'HH'h'mm");
-        String date = simpledateformat.format(d);
-
-        return date;
-
-    }
 
     private class AsyncTaskHelper extends AsyncTask<Void, Integer, Void> {
 
@@ -93,7 +82,7 @@ public class ListSession extends ListActivity {
             super.onPreExecute();
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
             mProgressDialog.setMessage("Please wait");
-            mProgressDialog.setMax(mDbHelper.GetUpdatesCount(sessionid));
+            mProgressDialog.setMax(mDbHelper.GetUpdatesCount(SessionID));
             mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             mProgressDialog.show();
         }
@@ -105,9 +94,9 @@ public class ListSession extends ListActivity {
 
         @Override
         protected Void doInBackground(Void... arg0) {
-            Cursor cursor = mDbHelper.GetCursorSession(sessionid);
+            Cursor cursor = mDbHelper.GetCursorSession(SessionID);
             String timestamp;
-            double SessionID;
+            // double SessionID = 0;
             double SP;
             double PV;
             double error;
@@ -132,13 +121,13 @@ public class ListSession extends ListActivity {
                     publishProgress(cursor.getPosition());
 
                     timestamp = cursor.getString(colTimestamp);
-                    SessionID = cursor.getDouble(colSessionID);
+                    //SessionID = cursor.getDouble(colSessionID);
                     SP = cursor.getDouble(colSP);
                     PV = cursor.getDouble(colPV);
                     error = cursor.getDouble(colError);
                     Kp = cursor.getDouble(colKp);
                     Ki = cursor.getDouble(colKi);
-                    Kd = cursor.getDouble(colKp);
+                    Kd = cursor.getDouble(colKd);
                     P = cursor.getDouble(colP);
                     I = cursor.getDouble(colI);
                     D = cursor.getDouble(colD);
@@ -157,10 +146,48 @@ public class ListSession extends ListActivity {
             } catch (Exception e) {
                 Log.d("Exception", e.getMessage());
             }
-            CloseKml();
+
 
             cursor.close();
-            FileOutput = zip();
+            //File FileOutput = zip();
+            String Filename = "export_sessionID_" + SessionID;
+
+            // Create a buffer for reading the files
+            byte[] buffer = new byte[1024];
+
+            File OutputZip = new File(getExternalFilesDir(null),
+                    Filename + ".zip");
+            try {
+
+                FileOutputStream fos = new FileOutputStream(OutputZip);
+                ZipOutputStream zipoutputstream = new ZipOutputStream(fos);
+                zipoutputstream.putNextEntry(new ZipEntry(Filename + ".csv"));
+                int len;
+                FileInputStream fileinputstream;
+
+
+                fileinputstream = new FileInputStream(mFile);
+                while ((len = fileinputstream.read(buffer)) > 0) {
+                    zipoutputstream.write(buffer, 0, len);
+                }
+
+
+                zipoutputstream.closeEntry();
+                fileinputstream.close();
+
+
+                zipoutputstream.closeEntry();
+
+
+                // Complete the ZIP file
+                zipoutputstream.close();
+
+            } catch (Exception e) {
+                Log.d("Exception", e.getMessage());
+            }
+
+
+
 
             return null;
         }
@@ -173,25 +200,11 @@ public class ListSession extends ListActivity {
         }
 
 
-        private void CloseKml() {
 
-            try {
-                fileCloseKml = new File(getFilesDir() + "/CloseKml");
-
-                FileWriter filewriter = new FileWriter(fileCloseKml);
-                BufferedWriter bufferedwriter = new BufferedWriter(filewriter);
-                bufferedwriter.write("</Document>");
-                bufferedwriter.newLine();
-                bufferedwriter.write("</kml>");
-                bufferedwriter.close();
-            } catch (Exception e) {
-            }
-
-        }
 
         public File zip() {
 
-            String Filename = "export_sessionID_" + sessionid;
+            String Filename = "export_sessionID_" + SessionID;
 
             // Create a buffer for reading the files
             byte[] buffer = new byte[1024];
@@ -207,7 +220,7 @@ public class ListSession extends ListActivity {
                 FileInputStream fileinputstream;
 
 
-                fileinputstream = new FileInputStream(fileInitKml);
+                fileinputstream = new FileInputStream(mFile);
                 while ((len = fileinputstream.read(buffer)) > 0) {
                     zipoutputstream.write(buffer, 0, len);
                 }

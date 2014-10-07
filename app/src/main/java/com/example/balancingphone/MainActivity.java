@@ -234,8 +234,10 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     private String ConvertToIso8601(long timestamp) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
-        String Iso8601String = sdf.format(new Date(timestamp));
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+
+        String Iso8601String = sdf.format(new Date(timestamp / 1000000));
         return Iso8601String;
     }
 

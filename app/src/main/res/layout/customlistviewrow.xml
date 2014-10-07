@@ -17,7 +17,7 @@
 
             <TextView
 
-                android:text="Session ID : "
+                android:text="Session ID: "
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
@@ -35,7 +35,7 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <TextView android:text="Updates : " />
+            <TextView android:text="Count: " />
 
             <TextView android:id="@+id/count" />
 
@@ -50,24 +50,14 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <TextView android:text="Last : " />
+            <TextView android:text="Duration: " />
 
-            <TextView android:id="@+id/last" />
-
-
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <TextView android:text="Avg accuracy : " />
-
-            <TextView android:id="@+id/avgaccuracy" />
+            <TextView android:id="@+id/duration" />
 
 
         </TableRow>
+
+
     </TableLayout>
 
 </LinearLayout>
