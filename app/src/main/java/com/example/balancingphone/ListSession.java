@@ -41,7 +41,8 @@ public class ListSession extends ListActivity {
     final int colD = 10;
     final int colOutput = 11;
     final int colIntegral = 12;
-    final int colInterval = 13;
+    final int colInterval_last = 13;
+    final int colInterval_txrx = 14;
     int SessionID;
 
     DbHelper mDbHelper;
@@ -109,13 +110,14 @@ public class ListSession extends ListActivity {
             double D;
             double output;
             double integral;
-            double interval;
+            double interval_last;
+            double interval_txrx;
             String sLine;
             cursor.moveToFirst();
             try {
                 mFile = new File(getFilesDir() + "/temp");
                 mFileOutputStream = new FileOutputStream(mFile);
-                String sHeader = "\"timestamp\",\"sessionid\",\"sp\",\"pv\",\"error\",\"kp\",\"ki\",\"kd\",\"p\",\"i\",\"d\",\"output\",\"integral\",\"interval\"" + "\n";
+                String sHeader = "\"timestamp\",\"sessionid\",\"sp\",\"pv\",\"error\",\"kp\",\"ki\",\"kd\",\"p\",\"i\",\"d\",\"output\",\"integral\",\"interval_last\",\"interval_txrx\"" + "\n";
                 mFileOutputStream.write(sHeader.getBytes());
 
 
@@ -135,9 +137,11 @@ public class ListSession extends ListActivity {
                     D = cursor.getDouble(colD);
                     output = cursor.getDouble(colOutput);
                     integral = cursor.getDouble(colIntegral);
-                    interval = cursor.getDouble(colInterval);
+                    interval_last = cursor.getDouble(colInterval_Last);
+                    interval_txrx = cursor.getDouble(colInterval_Txrx);
+                    
 
-                    sLine = timestamp + "," + SessionID + "," + SP + "," + PV + "," + error + "," + Kp + "," + Ki + "," + Kd + "," + P + "," + I + "," + D + "," + output + "," + integral + "\n";
+                    sLine = timestamp + "," + SessionID + "," + SP + "," + PV + "," + error + "," + Kp + "," + Ki + "," + Kd + "," + P + "," + I + "," + D + "," + output + "," + integral + "," + interval_last + "," + interval_txrx + "\n";
                     mFileOutputStream.write(sLine.getBytes());
 
                     // Longitude = cursor.getDouble(colLongitude);
