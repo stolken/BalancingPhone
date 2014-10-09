@@ -35,7 +35,19 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <TextView android:text="Count: " />
+            <TextView android:text="avg_error_interval: " />
+
+
+            <TextView android:id="@+id/avg_error_interval" />
+        </TableRow>
+
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+        <TextView android:text="Count: " />
 
             <TextView android:id="@+id/count" />
 
@@ -55,6 +67,36 @@
             <TextView android:id="@+id/duration" />
 
 
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <TextView android:text="Kp: " />
+
+            <TextView android:id="@+id/kp" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <TextView android:text="Ki: " />
+
+            <TextView android:id="@+id/ki" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <TextView android:text="Kd: " />
+
+            <TextView android:id="@+id/kd" />
         </TableRow>
 
 

@@ -41,6 +41,7 @@ public class ListSession extends ListActivity {
     final int colD = 10;
     final int colOutput = 11;
     final int colIntegral = 12;
+    final int colInterval = 13;
     int SessionID;
 
     DbHelper mDbHelper;
@@ -51,8 +52,8 @@ public class ListSession extends ListActivity {
         setContentView(R.layout.customlistviewlayout);
         mDbHelper = new DbHelper(getApplicationContext());
         Cursor cursor = mDbHelper.GetCursorListviewExport();
-        ListAdapter listadapter = new SimpleCursorAdapter(this, R.layout.customlistviewrow, cursor, new String[]{"sessionid", "count", "duration", "start", "stop"},
-                new int[]{R.id.sessionID, R.id.count, R.id.duration, R.id.start, R.id.stop},
+        ListAdapter listadapter = new SimpleCursorAdapter(this, R.layout.customlistviewrow, cursor, new String[]{"sessionid", "count", "duration", "start", "stop", "avg_error_interval", "kp", "ki", "kd"},
+                new int[]{R.id.sessionID, R.id.count, R.id.duration, R.id.start, R.id.stop, R.id.avg_error_interval, R.id.kp, R.id.ki, R.id.kd},
                 0);
         setListAdapter(listadapter);
     }
@@ -108,12 +109,13 @@ public class ListSession extends ListActivity {
             double D;
             double output;
             double integral;
+            double interval;
             String sLine;
             cursor.moveToFirst();
             try {
                 mFile = new File(getFilesDir() + "/temp");
                 mFileOutputStream = new FileOutputStream(mFile);
-                String sHeader = "\"timestamp\",\"sessionid\",\"sp\",\"pv\",\"error\",\"kp\",\"ki\",\"kd\",\"p\",\"i\",\"d\",\"output\",\"integral\"" + "\n";
+                String sHeader = "\"timestamp\",\"sessionid\",\"sp\",\"pv\",\"error\",\"kp\",\"ki\",\"kd\",\"p\",\"i\",\"d\",\"output\",\"integral\",\"interval\"" + "\n";
                 mFileOutputStream.write(sHeader.getBytes());
 
 
@@ -133,6 +135,7 @@ public class ListSession extends ListActivity {
                     D = cursor.getDouble(colD);
                     output = cursor.getDouble(colOutput);
                     integral = cursor.getDouble(colIntegral);
+                    interval = cursor.getDouble(colInterval);
 
                     sLine = timestamp + "," + SessionID + "," + SP + "," + PV + "," + error + "," + Kp + "," + Ki + "," + Kd + "," + P + "," + I + "," + D + "," + output + "," + integral + "\n";
                     mFileOutputStream.write(sLine.getBytes());

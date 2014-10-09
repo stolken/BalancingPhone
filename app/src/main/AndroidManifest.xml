@@ -32,6 +32,6 @@
         </activity>
         <activity
             android:name=".ListSession"
-            android:label="Choose the session to export"></activity>
+            android:label="Session"></activity>
     </application>
 </manifest>

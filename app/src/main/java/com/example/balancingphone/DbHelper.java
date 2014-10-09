@@ -23,7 +23,8 @@ public class DbHelper extends SQLiteOpenHelper {
             "i REAL , " +
             "d REAL , " +
             "output REAL , " +
-            "integral REAL)";
+            "integral REAL , " +
+            "interval REAL)";
     private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS LOG";
 
     public DbHelper(Context context) {
@@ -55,7 +56,8 @@ public class DbHelper extends SQLiteOpenHelper {
                           double I,
                           double D,
                           double output,
-                          double integral) {
+                          double integral,
+                          double interval) {
         SQLiteDatabase db = this.getWritableDatabase();
 		
 		ContentValues contentvalues = new ContentValues();
@@ -72,7 +74,7 @@ public class DbHelper extends SQLiteOpenHelper {
         contentvalues.put("d", D);
         contentvalues.put("output", output);
         contentvalues.put("integral", integral);
-
+        contentvalues.put("interval", interval);
 
         long rowid = db.insert("log", null, contentvalues);
         db.close();
@@ -101,8 +103,19 @@ public class DbHelper extends SQLiteOpenHelper {
         // select datetime(substr(max(timestamp),0,11),'unixepoch') stop from
         // locations group by sessionid;
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.query("log", new String[]{"sessionid _id", "sessionid", "count(*) count", "strftime('%s',max(timestamp)) - strftime('%s',min(timestamp)) duration", "date(min(timestamp)) start", "date(max(timestamp)) stop"}, null, null, "sessionid", null, "sessionid" + " DESC");
-
+        Cursor cursor = db.query("log", new String[]{
+                "sessionid _id",
+                "sessionid",
+                "count(*) count",
+                "strftime('%f',julianday(max(timestamp)) - julianday(min(timestamp))) duration",
+                "datetime(min(timestamp)) start",
+                "datetime(max(timestamp)) stop",
+                "avg(abs(error) * interval) avg_error_interval",
+                "kp",
+                "ki",
+                "kd"
+        }, null, null, "sessionid", null, "sessionid" + " DESC");
+        // "count(*) count"
         return cursor;
     }
 
