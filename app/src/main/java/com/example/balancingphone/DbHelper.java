@@ -24,7 +24,8 @@ public class DbHelper extends SQLiteOpenHelper {
             "d REAL , " +
             "output REAL , " +
             "integral REAL , " +
-            "interval REAL)";
+            "interval_last REAL, " +
+            "interval_txrx REAL)";
     private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS LOG";
 
     public DbHelper(Context context) {
@@ -57,7 +58,8 @@ public class DbHelper extends SQLiteOpenHelper {
                           double D,
                           double output,
                           double integral,
-                          double interval) {
+                          double interval_last,
+                          double interval_txrx) {
         SQLiteDatabase db = this.getWritableDatabase();
 		
 		ContentValues contentvalues = new ContentValues();
@@ -74,7 +76,8 @@ public class DbHelper extends SQLiteOpenHelper {
         contentvalues.put("d", D);
         contentvalues.put("output", output);
         contentvalues.put("integral", integral);
-        contentvalues.put("interval", interval);
+        contentvalues.put("interval_last", interval_last);
+        contentvalues.put("interval_txrx", interval_txrx);
 
         long rowid = db.insert("log", null, contentvalues);
         db.close();
@@ -110,7 +113,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 "strftime('%f',julianday(max(timestamp)) - julianday(min(timestamp))) duration",
                 "datetime(min(timestamp)) start",
                 "datetime(max(timestamp)) stop",
-                "avg(abs(error) * interval) avg_error_interval",
+                "avg(abs(error) * interval_last) avg_error_interval",
                 "kp",
                 "ki",
                 "kd"
