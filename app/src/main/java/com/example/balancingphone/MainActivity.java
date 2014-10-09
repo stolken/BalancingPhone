@@ -144,7 +144,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             mIGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, I / max_output * 100), true, 5000);
             mDGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, D / max_output * 100), true, 5000);
             updatetvSensor();
-            rowid = mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs);
+            rowid = mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
 
         } else { //swLoop not checked
             output = 0;
