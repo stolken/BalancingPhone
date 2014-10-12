@@ -11,7 +11,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -75,7 +74,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     double integral = 0;
     double output;
     short[] output_servos;
-    double onSensorChangedTimestampMs;
+    double last_onSensorChangedTimestampMs;
     double intervalOnSensorEventMs;
     long intervalTxRxMs;
     int SessionID;
@@ -84,9 +83,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     GraphViewSeries mPGraphViewSeries;
     GraphViewSeries mIGraphViewSeries;
     GraphViewSeries mDGraphViewSeries;
-    //SQLiteDatabase mDb;
     DbHelper mDbHelper;
-    long rowid;
 
     UsbDevice mDevice;
     int TIMEOUT = 1000;
@@ -120,6 +117,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         GetAllPreferences(context);
         updatetvSensor();
         mDbHelper = new DbHelper(this);
+        last_onSensorChangedTimestampMs = 0;
         //mDb = mDbHelper.getWritableDatabase();
     }
 
@@ -127,63 +125,26 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         PV = getPitch(event);
         error = (SP - PV);
+        if (last_onSensorChangedTimestampMs != 0) {
+            intervalOnSensorEventMs = event.timestamp / 1000000 - last_onSensorChangedTimestampMs;
+        } else {
+            intervalOnSensorEventMs = 0;
+        }
 
-        intervalOnSensorEventMs = event.timestamp / 1000000 - onSensorChangedTimestampMs;
-        onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
+        last_onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
+        PID();
+        intervalTxRxMs = sendSerialMessage();
 
-
-        if (swLoop.isChecked()) {
-            if (error > max_error || error < -max_error) {
-                AddToConsole("Over pitch!");
-                swLoop.setChecked(false);
-            }
-            PID();
-            mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, error / max_error * 100), true, 5000);
-            mOutputGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, output / max_output * 100), true, 5000);
-            mPGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, P / max_output * 100), true, 5000);
-            mIGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, I / max_output * 100), true, 5000);
-            mDGraphViewSeries.appendData(new GraphView.GraphViewData(onSensorChangedTimestampMs, D / max_output * 100), true, 5000);
+        if ((swLoop.isChecked()) & (error < max_error & error > -max_error)) {
+            updateGraphView();
             updatetvSensor();
-            rowid = mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
-
-        } else { //swLoop not checked
-            output = 0;
-        }
-        output_servos[0] = (short) (servo_neutral - output);
-        output_servos[1] = (short) (servo_neutral + output);
-
-        if (output_servos[0] < min_Output_servos) {
-            output_servos[0] = min_Output_servos;
-        }
-
-        if (output_servos[0] > max_Output_servos) {
-            output_servos[0] = max_Output_servos;
-        }
-
-        if (output_servos[1] < min_Output_servos) {
-            output_servos[1] = min_Output_servos;
-        }
-
-        if (output_servos[1] > max_Output_servos) {
-            output_servos[1] = max_Output_servos;
-        }
-
-
-        if (mUsbDeviceConnection != null) {
-            long beforeSend = System.nanoTime();
-            sendSerialMessage();
-            byte rxByte = readSerialMessage();
-
-            if (rxByte != 4) {
+            mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
+        } else if ((swLoop.isChecked()) & (error > max_error || error < -max_error)) {
+            AddToConsole("Over pitch!");
                 swLoop.setChecked(false);
-                AddToConsole("Connection error: " + rxByte);
-            }
-            long afterSend = System.nanoTime();
-            intervalTxRxMs = (afterSend - beforeSend) / 1000000;
-
-
         }
     }
+
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -235,33 +196,44 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private String ConvertToIso8601(long timestamp) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
-
         String Iso8601String = sdf.format(new Date(timestamp / 1000000));
         return Iso8601String;
     }
 
 
-    void sendSerialMessage() {
-
+    private long sendSerialMessage() {
+        long ret = 0;
+        long beforeSend = System.nanoTime();
         if (mUsbEndpointOut != null) {
-            byte[] mMessage = new byte[4];
-            ByteBuffer.wrap(mMessage, 0, 2).putShort(output_servos[0]);
-            ByteBuffer.wrap(mMessage, 2, 2).putShort(output_servos[1]);
+            byte[] mMessageTx = new byte[4];
+            ByteBuffer.wrap(mMessageTx, 0, 2).putShort(output_servos[0]);
+            ByteBuffer.wrap(mMessageTx, 2, 2).putShort(output_servos[1]);
             //mMessage[4] = (byte) 10; //new line
-            int txBytes = mUsbDeviceConnection.bulkTransfer(mUsbEndpointOut, mMessage, mMessage.length, TIMEOUT); //do in another thread
+            int txBytes = mUsbDeviceConnection.bulkTransfer(mUsbEndpointOut, mMessageTx, mMessageTx.length, TIMEOUT); //do in another thread
 
             if (txBytes > 0) {
+                byte[] mMessageRx = new byte[64];
+                // reinitialize read value byte array
+                Arrays.fill(mMessageRx, (byte) 0);
+                int rxBytes;
+                rxBytes = mUsbDeviceConnection.bulkTransfer(mUsbEndpointIn, mMessageRx, mMessageRx.length, TIMEOUT);
+                if (rxBytes > 0) {
+                    byte mByte = mMessageRx[0];
+                    if (mByte == mMessageTx.length) {
+                        long afterSend = System.nanoTime();
+                        ret = (afterSend - beforeSend);
+                    }
 
-                //AddToConsole(txBytes + " byte sent");
-                //for (int i = 0; i < txBytes; i++) {
-                //    AddToConsole(">"+ i + "(dec):" + mMessage[i] + "," + "(hex):" + String.format("%02X ", mMessage[i]));
-                //}
+                } else {
+                    ret = -3;
+                }
             } else {
-                AddToConsole("Error no data transferred: " + txBytes);
+                ret = -1;
             }
+        } else {
+            ret = -2;
         }
-
+        return ret;
     }
 
     private byte readSerialMessage() {
@@ -302,6 +274,15 @@ public class MainActivity extends Activity implements SensorEventListener {
         return (float) Math.toDegrees(orientationVals[1]);
 
 
+    }
+
+
+    void updateGraphView() {
+        mErrorGraphViewSeries.appendData(new GraphView.GraphViewData(last_onSensorChangedTimestampMs, error / max_error * 100), true, 5000);
+        mOutputGraphViewSeries.appendData(new GraphView.GraphViewData(last_onSensorChangedTimestampMs, output / max_output * 100), true, 5000);
+        mPGraphViewSeries.appendData(new GraphView.GraphViewData(last_onSensorChangedTimestampMs, P / max_output * 100), true, 5000);
+        mIGraphViewSeries.appendData(new GraphView.GraphViewData(last_onSensorChangedTimestampMs, I / max_output * 100), true, 5000);
+        mDGraphViewSeries.appendData(new GraphView.GraphViewData(last_onSensorChangedTimestampMs, D / max_output * 100), true, 5000);
     }
 
     void InitGraphView() {
@@ -400,7 +381,12 @@ public class MainActivity extends Activity implements SensorEventListener {
         P = Kp * error;
         I = Ki * integral;
         D = Kd * (error - prev_error) / intervalOnSensorEventMs;
-        output = P + I + D;
+
+        if (swLoop.isChecked()) {
+            output = P + I + D;
+        } else {
+            output = 0;
+        }
 
         if (output > max_output) {
             output = max_output;
@@ -409,6 +395,26 @@ public class MainActivity extends Activity implements SensorEventListener {
             output = min_output;
         }
         prev_error = error;
+
+
+        output_servos[0] = (short) (servo_neutral - output);
+        output_servos[1] = (short) (servo_neutral + output);
+
+        if (output_servos[0] < min_Output_servos) {
+            output_servos[0] = min_Output_servos;
+        }
+
+        if (output_servos[0] > max_Output_servos) {
+            output_servos[0] = max_Output_servos;
+        }
+
+        if (output_servos[1] < min_Output_servos) {
+            output_servos[1] = min_Output_servos;
+        }
+
+        if (output_servos[1] > max_Output_servos) {
+            output_servos[1] = max_Output_servos;
+        }
     }
 
     void InitUI() {

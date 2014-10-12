@@ -9,6 +9,7 @@
         android:id="@+id/tvSensor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:autoText="false"
         android:textColor="@android:color/holo_blue_dark" />
 
@@ -17,7 +18,7 @@
         android:id="@+id/tvConsole"
         android:layout_width="match_parent"
         android:layout_height="400px"
-        android:layout_below="@id/tvSensor"
+        android:layout_alignParentBottom="true"
         android:textColor="@android:color/darker_gray" />
 
 </RelativeLayout>

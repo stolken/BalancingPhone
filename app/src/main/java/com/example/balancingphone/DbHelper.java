@@ -45,7 +45,7 @@ public class DbHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public long AddRecord(String timestamp,
+    void AddRecord(String timestamp,
                           double SessionID,
                           double SP,
                           double PV,
@@ -79,10 +79,10 @@ public class DbHelper extends SQLiteOpenHelper {
         contentvalues.put("interval_last", interval_last);
         contentvalues.put("interval_txrx", interval_txrx);
 
-        long rowid = db.insert("log", null, contentvalues);
+        db.insert("log", null, contentvalues);
         db.close();
-		return rowid;
-	}
+
+    }
 
     public int GetNewSessionID() {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -137,7 +137,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public Cursor GetCursorSession(int sessionid) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.query("log", new String[]{
-                "timestamp", "sessionid", "sp", "pv", "error", "kp", "ki", "kd", "p", "i", "d", "output", "integral"}, "sessionid="
+                "timestamp", "sessionid", "sp", "pv", "error", "kp", "ki", "kd", "p", "i", "d", "output", "integral", "interval_last", "interval_txrx"}, "sessionid="
                 + sessionid, null, null, null, "timestamp");
 
         return cursor;

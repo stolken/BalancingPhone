@@ -41,8 +41,8 @@ public class ListSession extends ListActivity {
     final int colD = 10;
     final int colOutput = 11;
     final int colIntegral = 12;
-    final int colInterval_last = 13;
-    final int colInterval_txrx = 14;
+    final int colInterval_Last = 13;
+    final int colInterval_TxRx = 14;
     int SessionID;
 
     DbHelper mDbHelper;
@@ -138,7 +138,7 @@ public class ListSession extends ListActivity {
                     output = cursor.getDouble(colOutput);
                     integral = cursor.getDouble(colIntegral);
                     interval_last = cursor.getDouble(colInterval_Last);
-                    interval_txrx = cursor.getDouble(colInterval_Txrx);
+                    interval_txrx = cursor.getDouble(colInterval_TxRx);
                     
 
                     sLine = timestamp + "," + SessionID + "," + SP + "," + PV + "," + error + "," + Kp + "," + Ki + "," + Kd + "," + P + "," + I + "," + D + "," + output + "," + integral + "," + interval_last + "," + interval_txrx + "\n";

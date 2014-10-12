@@ -12,17 +12,17 @@
         android:key="servo_neutral"
         android:title="servo_neutral" />
     <EditTextPreference
-        android:defaultValue="2"
+        android:defaultValue="1"
         android:inputType="numberDecimal|numberSigned"
         android:key="Kp"
         android:title="Kp" />
     <EditTextPreference
-        android:defaultValue="2"
+        android:defaultValue="1"
         android:inputType="numberDecimal|numberSigned"
         android:key="Ki"
         android:title="Ki" />
     <EditTextPreference
-        android:defaultValue="2"
+        android:defaultValue="1"
         android:inputType="numberDecimal|numberSigned"
         android:key="Kd"
         android:title="Kd" />
