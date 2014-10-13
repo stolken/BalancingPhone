@@ -91,6 +91,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     boolean forceClaim = true;
     private SensorManager mSensorManager;
     private Sensor mRotationVector;
+    private Sensor mProximitySensor;
 
     public static void GetAllPreferences(Context ctxt) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctxt);
@@ -123,6 +124,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+    	Sensor sensor = event.sensor;
+        if (sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
         PV = getPitch(event);
         error = (SP - PV);
         if (last_onSensorChangedTimestampMs != 0) {
@@ -135,7 +138,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         PID();
         intervalTxRxMs = sendSerialMessage();
 
-        if ((swLoop.isChecked()) & (error < max_error & error > -max_error)) {
+        if ((swLoop.isChecked()) & (error < max_error & error > -max_error) & boolProximitySensorClosed) {
             updateGraphView();
             updatetvSensor();
             mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
@@ -143,6 +146,22 @@ public class MainActivity extends Activity implements SensorEventListener {
             AddToConsole("Over pitch!");
                 swLoop.setChecked(false);
         }
+        }
+        else if (sensor.getType() == Sensor.TYPE_PROXIMITY) {
+        valProximitySensor = 	event.values[0];
+        if (event.values[0] < 0){
+        	boolProximitySensorClosed = true;
+        	else{
+        	boolProximitySensorClosed = false;	
+        	}
+        	
+        	
+        } 
+          
+        }
+
+    	
+        
     }
 
 
@@ -154,6 +173,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener(this, mRotationVector, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -191,7 +211,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 + "integral: " + decimalFormat.format(integral) + "\n"
                 + "intervalSensorEvent: " + Double.toString(intervalOnSensorEventMs) + "\n"
                 + "intervalTxRx: " + Long.toString(intervalTxRxMs) + "\n"
-                + "sessionid: " + SessionID + "\n");
+                + "sessionid: " + SessionID + "\n"
+                + "valProximitySensor: " + valProximitySensor);
     }
 
     private String ConvertToIso8601(long timestamp) {
@@ -443,6 +464,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     void InitSensor() {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mRotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
     }
 
     @Override
@@ -461,6 +483,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         swLoop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 SessionID = mDbHelper.GetNewSessionID();
+                integral = 0;
             }
         });
 
