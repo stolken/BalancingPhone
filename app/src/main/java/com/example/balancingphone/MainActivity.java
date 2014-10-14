@@ -66,6 +66,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     short min_Output_servos = 1000;
     short max_output = 500;
     short min_output = -500;
+    boolean boolProximitySensorClosed;
     double P;
     double I;
     double D;
@@ -84,6 +85,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     GraphViewSeries mIGraphViewSeries;
     GraphViewSeries mDGraphViewSeries;
     DbHelper mDbHelper;
+    double valProximitySensor;
 
     UsbDevice mDevice;
     int TIMEOUT = 1000;
@@ -124,44 +126,37 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-    	Sensor sensor = event.sensor;
+        Sensor sensor = event.sensor;
         if (sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-        PV = getPitch(event);
-        error = (SP - PV);
-        if (last_onSensorChangedTimestampMs != 0) {
-            intervalOnSensorEventMs = event.timestamp / 1000000 - last_onSensorChangedTimestampMs;
-        } else {
-            intervalOnSensorEventMs = 0;
-        }
+            PV = getPitch(event);
+            error = (SP - PV);
+            if (last_onSensorChangedTimestampMs != 0) {
+                intervalOnSensorEventMs = event.timestamp / 1000000 - last_onSensorChangedTimestampMs;
+            } else {
+                intervalOnSensorEventMs = 0;
+            }
 
-        last_onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
-        PID();
-        intervalTxRxMs = sendSerialMessage();
+            last_onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
+            PID();
+            intervalTxRxMs = sendSerialMessage();
 
-        if ((swLoop.isChecked()) & (error < max_error & error > -max_error) & boolProximitySensorClosed) {
-            updateGraphView();
-            updatetvSensor();
-            mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
-        } else if ((swLoop.isChecked()) & (error > max_error || error < -max_error)) {
-            AddToConsole("Over pitch!");
+            if ((swLoop.isChecked()) & (error < max_error & error > -max_error) & boolProximitySensorClosed == false) {
+                updateGraphView();
+                updatetvSensor();
+                mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
+            } else if ((swLoop.isChecked()) & (error > max_error || error < -max_error)) {
+                AddToConsole("Over pitch!");
                 swLoop.setChecked(false);
-        }
-        }
-        else if (sensor.getType() == Sensor.TYPE_PROXIMITY) {
-        valProximitySensor = 	event.values[0];
-        if (event.values[0] < 0){
-        	boolProximitySensorClosed = true;
-        	else{
-        	boolProximitySensorClosed = false;	
-        	}
-        	
-        	
-        } 
-          
+            }
+        } else if (sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            valProximitySensor = event.values[0];
+            if (event.values[0] == 0) {
+                boolProximitySensorClosed = true;
+            } else {
+                boolProximitySensorClosed = false;
+            }
         }
 
-    	
-        
     }
 
 
@@ -501,11 +496,11 @@ public class MainActivity extends Activity implements SensorEventListener {
                 return true;
             case R.id.action_ListSession:
                 Intent ListSessionActivity = new Intent(getBaseContext(), ListSession.class);
-			startActivity(ListSessionActivity); 
+                startActivity(ListSessionActivity);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
-                
+
         }
     }
 
