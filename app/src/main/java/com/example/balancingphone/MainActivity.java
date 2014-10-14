@@ -67,6 +67,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     short max_output = 500;
     short min_output = -500;
     boolean boolProximitySensorClosed;
+    boolean proximityHold;
     double P;
     double I;
     double D;
@@ -140,7 +141,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             PID();
             intervalTxRxMs = sendSerialMessage();
 
-            if ((swLoop.isChecked()) & (error < max_error & error > -max_error) & boolProximitySensorClosed == false) {
+            if ((swLoop.isChecked()) & (error < max_error & error > -max_error) & proximityHold == false) {
                 updateGraphView();
                 updatetvSensor();
                 mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
@@ -150,10 +151,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         } else if (sensor.getType() == Sensor.TYPE_PROXIMITY) {
             valProximitySensor = event.values[0];
-            if (event.values[0] == 0) {
-                boolProximitySensorClosed = true;
-            } else {
-                boolProximitySensorClosed = false;
+            if (valProximitySensor != 0) {
+                proximityHold = false;
             }
         }
 
@@ -479,6 +478,10 @@ public class MainActivity extends Activity implements SensorEventListener {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 SessionID = mDbHelper.GetNewSessionID();
                 integral = 0;
+                if (valProximitySensor == 0) {
+                proximityHold = true;
+                }
+            
             }
         });
 
