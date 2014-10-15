@@ -144,7 +144,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             if ((swLoop.isChecked()) & (error < max_error & error > -max_error) & proximityHold == false) {
                 updateGraphView();
                 updatetvSensor();
-                mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kp, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
+                mDbHelper.AddRecord(ConvertToIso8601(event.timestamp), SessionID, SP, PV, error, Kp, Ki, Kd, P, I, D, output, integral, intervalOnSensorEventMs, intervalTxRxMs);
             } else if ((swLoop.isChecked()) & (error > max_error || error < -max_error)) {
                 AddToConsole("Over pitch!");
                 swLoop.setChecked(false);
