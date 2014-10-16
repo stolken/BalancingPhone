@@ -123,11 +123,11 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
-    public int GetUpdatesCount(double sessionid) {
+    public int GetUpdatesCount() {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.query("log",
-                new String[]{"count(*) count"}, "sessionid=" + sessionid,
-                null, "sessionid", null, null);
+                new String[]{"count(*) count"}, null,
+                null, null, null, null);
 
         cursor.moveToFirst();
         int UpdatesCount = cursor.getInt(0);
@@ -139,6 +139,15 @@ public class DbHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query("log", new String[]{
                 "timestamp", "sessionid", "sp", "pv", "error", "kp", "ki", "kd", "p", "i", "d", "output", "integral", "interval_last", "interval_txrx"}, "sessionid="
                 + sessionid, null, null, null, "timestamp");
+
+        return cursor;
+    }
+
+
+    public Cursor GetCursorAllSessions() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.query("log", new String[]{
+                "timestamp", "sessionid", "sp", "pv", "error", "kp", "ki", "kd", "p", "i", "d", "output", "integral", "interval_last", "interval_txrx"}, null, null, null, null, "timestamp");
 
         return cursor;
     }

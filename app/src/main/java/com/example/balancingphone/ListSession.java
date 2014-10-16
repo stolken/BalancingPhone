@@ -84,7 +84,7 @@ public class ListSession extends ListActivity {
             super.onPreExecute();
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
             mProgressDialog.setMessage("Please wait");
-            mProgressDialog.setMax(mDbHelper.GetUpdatesCount(SessionID));
+            mProgressDialog.setMax(mDbHelper.GetUpdatesCount());
             mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             mProgressDialog.show();
         }
@@ -96,9 +96,9 @@ public class ListSession extends ListActivity {
 
         @Override
         protected Void doInBackground(Void... arg0) {
-            Cursor cursor = mDbHelper.GetCursorSession(SessionID);
+            Cursor cursor = mDbHelper.GetCursorAllSessions();
             String timestamp;
-            // double SessionID = 0;
+            double expSessionID = 0;
             double SP;
             double PV;
             double error;
@@ -125,7 +125,7 @@ public class ListSession extends ListActivity {
                     publishProgress(cursor.getPosition());
 
                     timestamp = cursor.getString(colTimestamp);
-                    //SessionID = cursor.getDouble(colSessionID);
+                    expSessionID = cursor.getDouble(colSessionID);
                     SP = cursor.getDouble(colSP);
                     PV = cursor.getDouble(colPV);
                     error = cursor.getDouble(colError);
@@ -139,9 +139,9 @@ public class ListSession extends ListActivity {
                     integral = cursor.getDouble(colIntegral);
                     interval_last = cursor.getDouble(colInterval_Last);
                     interval_txrx = cursor.getDouble(colInterval_TxRx);
-                    
 
-                    sLine = timestamp + "," + SessionID + "," + SP + "," + PV + "," + error + "," + Kp + "," + Ki + "," + Kd + "," + P + "," + I + "," + D + "," + output + "," + integral + "," + interval_last + "," + interval_txrx + "\n";
+
+                    sLine = timestamp + "," + expSessionID + "," + SP + "," + PV + "," + error + "," + Kp + "," + Ki + "," + Kd + "," + P + "," + I + "," + D + "," + output + "," + integral + "," + interval_last + "," + interval_txrx + "\n";
                     mFileOutputStream.write(sLine.getBytes());
 
                     // Longitude = cursor.getDouble(colLongitude);
@@ -157,7 +157,7 @@ public class ListSession extends ListActivity {
 
             cursor.close();
             //File FileOutput = zip();
-            String Filename = "export_sessionID_" + SessionID;
+            String Filename = "export_balbot";
 
             // Create a buffer for reading the files
             byte[] buffer = new byte[1024];
@@ -207,48 +207,6 @@ public class ListSession extends ListActivity {
         }
 
 
-
-
-        public File zip() {
-
-            String Filename = "export_sessionID_" + SessionID;
-
-            // Create a buffer for reading the files
-            byte[] buffer = new byte[1024];
-
-            File OutputZip = new File(getExternalFilesDir(null),
-                    Filename + ".zip");
-            try {
-
-                FileOutputStream fos = new FileOutputStream(OutputZip);
-                ZipOutputStream zipoutputstream = new ZipOutputStream(fos);
-                zipoutputstream.putNextEntry(new ZipEntry(Filename + ".kml"));
-                int len;
-                FileInputStream fileinputstream;
-
-
-                fileinputstream = new FileInputStream(mFile);
-                while ((len = fileinputstream.read(buffer)) > 0) {
-                    zipoutputstream.write(buffer, 0, len);
-                }
-
-
-                zipoutputstream.closeEntry();
-                fileinputstream.close();
-
-
-                zipoutputstream.closeEntry();
-
-
-                // Complete the ZIP file
-                zipoutputstream.close();
-
-            } catch (Exception e) {
-                Log.d("Exception", e.getMessage());
-            }
-
-            return OutputZip;
-        }
 
     }// class
 }
