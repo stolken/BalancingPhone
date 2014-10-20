@@ -6,19 +6,61 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/tvSensor"
+        android:id="@+id/tvError"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:autoText="false"
-        android:textColor="@android:color/holo_blue_dark" />
+        android:text="Error:"
+        android:textColor="#64a6d8f5" />
 
 
     <TextView
         android:id="@+id/tvConsole"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="400px"
         android:layout_alignParentBottom="true"
-        android:textColor="@android:color/darker_gray" />
+        android:textColor="#64a6d8f5" />
+
+    <TextView
+        android:id="@+id/tvOutput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/tvError"
+        android:autoText="false"
+        android:text="Output"
+        android:textColor="#64a6d8f5" />
+
+    <TextView
+        android:id="@+id/tvP"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/tvOutput"
+        android:autoText="false"
+        android:text="P:"
+        android:textColor="@android:color/GREEN" />
+
+    <TextView
+        android:id="@+id/tvI"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvP"
+        android:layout_toEndOf="@+id/tvConsole"
+        android:autoText="false"
+        android:text="I:"
+        android:textColor="#64a6d8f5" />
+
+    <TextView
+        android:id="@+id/tvD"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/tvI"
+        android:layout_toEndOf="@+id/tvConsole"
+        android:autoText="false"
+        android:text="D:"
+        android:textColor="#64a6d8f5" />
 
 </RelativeLayout>

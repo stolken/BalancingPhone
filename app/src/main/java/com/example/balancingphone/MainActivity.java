@@ -202,11 +202,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 + "output (P;I;D): " + decimalFormat.format(output) + "(" + decimalFormat.format(P) + ";" + decimalFormat.format(I) + ";" + decimalFormat.format(D) + ")\n"
                 + "output_Servo 0: " + output_servos[0] + "\n"
                 + "output_Servo 1: " + output_servos[1] + "\n"
-                + "integral: " + decimalFormat.format(integral) + "\n"
-                + "intervalSensorEvent: " + Double.toString(intervalOnSensorEventMs) + "\n"
                 + "intervalTxRx: " + Long.toString(intervalTxRxMs) + "\n"
-                + "sessionid: " + SessionID + "\n"
-                + "valProximitySensor: " + valProximitySensor);
+                + "sessionid: " + SessionID + "\n");
     }
 
     private String ConvertToIso8601(long timestamp) {
@@ -300,12 +297,25 @@ public class MainActivity extends Activity implements SensorEventListener {
         mDGraphViewSeries.appendData(new GraphView.GraphViewData(last_onSensorChangedTimestampMs, D / max_output * 100), true, 5000);
     }
 
+
+    void resetGraphView() {
+        graphView.removeAllSeries();
+        //new GraphView.GraphViewData(X, 0)
+        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(Color.RED, 5), new GraphView.GraphViewData[]{});
+        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(Color.BLUE, 5), new GraphView.GraphViewData[]{});
+        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.GREEN, 2), new GraphView.GraphViewData[]{});
+        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(Color.YELLOW, 2), new GraphView.GraphViewData[]{});
+        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 2), new GraphView.GraphViewData[]{});
+        graphView.addSeries(mErrorGraphViewSeries);
+        graphView.addSeries(mOutputGraphViewSeries);
+        graphView.addSeries(mPGraphViewSeries);
+        graphView.addSeries(mIGraphViewSeries);
+        graphView.addSeries(mDGraphViewSeries);
+
+    }
+
     void InitGraphView() {
-        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(Color.RED, 4), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(Color.BLUE, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.GREEN, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(Color.YELLOW, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
-        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 2), new GraphView.GraphViewData[]{new GraphView.GraphViewData(X, 0)});
+
 
         X++;
         graphView = new LineGraphView(this, "PID");
@@ -320,11 +330,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         graphView.setHorizontalLabels(null);
         graphView.setManualYAxisBounds(100, -100);
         graphView.setViewPort(2, 3500);
-        graphView.addSeries(mErrorGraphViewSeries);
-        graphView.addSeries(mOutputGraphViewSeries);
-        graphView.addSeries(mPGraphViewSeries);
-        graphView.addSeries(mIGraphViewSeries);
-        graphView.addSeries(mDGraphViewSeries);
+        //  graphView.addSeries(mErrorGraphViewSeries);
+        //   graphView.addSeries(mOutputGraphViewSeries);
+        //    graphView.addSeries(mPGraphViewSeries);
+        //    graphView.addSeries(mIGraphViewSeries);
+        //    graphView.addSeries(mDGraphViewSeries);
 
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.mLayout);
         layout.addView(graphView);
@@ -433,7 +443,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     void InitUI() {
-        tvSensor = (TextView) findViewById(R.id.tvSensor);
+        tvSensor = (TextView) findViewById(R.id.tvError);
 
 
     }
@@ -476,10 +486,14 @@ public class MainActivity extends Activity implements SensorEventListener {
                 .findViewById(R.id.swLoop);
         swLoop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
                 SessionID = mDbHelper.GetNewSessionID();
                 integral = 0;
-                if (valProximitySensor == 0) {
-                proximityHold = true;
+                    resetGraphView();
+
+                    if (valProximitySensor == 0) {
+                        proximityHold = true;
+                    }
                 }
             
             }
