@@ -310,11 +310,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     void resetGraphView() {
         graphView.removeAllSeries();
         //new GraphView.GraphViewData(X, 0)
-        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_red_light, 5), new GraphView.GraphViewData[]{});
-        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_blue_light, 5), new GraphView.GraphViewData[]{});
-        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 2), new GraphView.GraphViewData[]{});
-        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_orange_light, 2), new GraphView.GraphViewData[]{});
-        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_purple, 2), new GraphView.GraphViewData[]{});
+        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(R.color.red, 5), new GraphView.GraphViewData[]{});
+        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(R.color.blue, 5), new GraphView.GraphViewData[]{});
+        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(R.color.green, 2), new GraphView.GraphViewData[]{});
+        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(R.color.orange, 2), new GraphView.GraphViewData[]{});
+        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(R.color.purple, 2), new GraphView.GraphViewData[]{});
         graphView.addSeries(mErrorGraphViewSeries);
         graphView.addSeries(mOutputGraphViewSeries);
         graphView.addSeries(mPGraphViewSeries);
