@@ -56,7 +56,13 @@ public class MainActivity extends Activity implements SensorEventListener {
     UsbEndpoint mUsbEndpointIn;
     UsbEndpoint mUsbEndpointOut;
     GraphView graphView;
-    TextView tvSensor;
+
+
+    TextView tvError;
+    TextView tvOutput;
+    TextView tvP;
+    TextView tvI;
+    TextView tvD;
     TextView tvConsole;
     Switch swLoop;
 
@@ -196,14 +202,17 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         DecimalFormat decimalFormat = new DecimalFormat("#.#");
 
-        tvSensor.setText("PV: " + decimalFormat.format(PV) + "\n"
-                + "SP: " + decimalFormat.format(SP) + "\n"
-                + "error: " + decimalFormat.format(error) + "\n"
-                + "output (P;I;D): " + decimalFormat.format(output) + "(" + decimalFormat.format(P) + ";" + decimalFormat.format(I) + ";" + decimalFormat.format(D) + ")\n"
-                + "output_Servo 0: " + output_servos[0] + "\n"
-                + "output_Servo 1: " + output_servos[1] + "\n"
-                + "intervalTxRx: " + Long.toString(intervalTxRxMs) + "\n"
-                + "sessionid: " + SessionID + "\n");
+        tvError.setText("Error: " + decimalFormat.format(error));
+        tvOutput.setText("Output: " + decimalFormat.format(output));
+        tvP.setText("P: " + decimalFormat.format(P));
+        tvI.setText("I: " + decimalFormat.format(I));
+        tvD.setText("D: " + decimalFormat.format(D));
+
+
+
+
+
+
     }
 
     private String ConvertToIso8601(long timestamp) {
@@ -301,11 +310,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     void resetGraphView() {
         graphView.removeAllSeries();
         //new GraphView.GraphViewData(X, 0)
-        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(Color.RED, 5), new GraphView.GraphViewData[]{});
-        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(Color.BLUE, 5), new GraphView.GraphViewData[]{});
-        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.GREEN, 2), new GraphView.GraphViewData[]{});
-        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(Color.YELLOW, 2), new GraphView.GraphViewData[]{});
-        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 2), new GraphView.GraphViewData[]{});
+        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_red_light, 5), new GraphView.GraphViewData[]{});
+        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_blue_light, 5), new GraphView.GraphViewData[]{});
+        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.MAGENTA, 2), new GraphView.GraphViewData[]{});
+        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_orange_light, 2), new GraphView.GraphViewData[]{});
+        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(android.R.color.holo_purple, 2), new GraphView.GraphViewData[]{});
         graphView.addSeries(mErrorGraphViewSeries);
         graphView.addSeries(mOutputGraphViewSeries);
         graphView.addSeries(mPGraphViewSeries);
@@ -443,7 +452,12 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     void InitUI() {
-        tvSensor = (TextView) findViewById(R.id.tvError);
+        tvError = (TextView) findViewById(R.id.tvError);
+        tvOutput = (TextView) findViewById(R.id.tvOutput);
+        tvP = (TextView) findViewById(R.id.tvP);
+        tvI = (TextView) findViewById(R.id.tvI);
+        tvD = (TextView) findViewById(R.id.tvD);
+
 
 
     }
