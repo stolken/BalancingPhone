@@ -12,7 +12,7 @@
         android:layout_alignParentTop="true"
         android:autoText="false"
         android:text="Error:"
-        android:textColor="@android:color/holo_red_light" />
+        android:textColor="@color/red" />
 
 
     <TextView
@@ -30,7 +30,7 @@
         android:layout_below="@+id/tvError"
         android:autoText="false"
         android:text="Output"
-        android:textColor="@android:color/holo_blue_light" />
+        android:textColor="@color/blue" />
 
     <TextView
         android:id="@+id/tvP"
@@ -40,7 +40,7 @@
         android:layout_below="@+id/tvOutput"
         android:autoText="false"
         android:text="P:"
-        android:textColor="@android:color/holo_green_light" />
+        android:textColor="@color/green" />
 
     <TextView
         android:id="@+id/tvI"
@@ -49,7 +49,7 @@
         android:layout_below="@+id/tvP"
         android:autoText="false"
         android:text="I:"
-        android:textColor="@android:color/holo_orange_light" />
+        android:textColor="@color/orange" />
 
     <TextView
         android:id="@+id/tvD"
@@ -60,6 +60,6 @@
         android:layout_toEndOf="@+id/tvConsole"
         android:autoText="false"
         android:text="D:"
-        android:textColor="@android:color/holo_purple" />
+        android:textColor="@color/purple" />
 
 </RelativeLayout>
