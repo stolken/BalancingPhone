@@ -102,6 +102,21 @@ public class DbHelper extends SQLiteOpenHelper {
         return last;
 	}
 
+
+    public int DeleteLastSession() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db
+                .query("log", new String[]{"sessionid"}, null, null,
+                        "sessionid", null, "sessionid" + " DESC", "1");
+
+        cursor.moveToFirst();
+
+        int last;
+        last = cursor.getInt(0);
+        db.delete("log", "sessionid=" + last, null);
+        return last;
+    }
+
     public Cursor GetCursorListviewExport() {
         // select datetime(substr(max(timestamp),0,11),'unixepoch') stop from
         // locations group by sessionid;

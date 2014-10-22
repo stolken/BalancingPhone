@@ -310,11 +310,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     void resetGraphView() {
         graphView.removeAllSeries();
         //new GraphView.GraphViewData(X, 0)
-        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(R.color.red, 5), new GraphView.GraphViewData[]{});
-        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(R.color.blue, 5), new GraphView.GraphViewData[]{});
-        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(R.color.green, 2), new GraphView.GraphViewData[]{});
-        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(R.color.orange, 2), new GraphView.GraphViewData[]{});
-        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(R.color.purple, 2), new GraphView.GraphViewData[]{});
+        mErrorGraphViewSeries = new GraphViewSeries("Error", new GraphViewSeries.GraphViewSeriesStyle(Color.RED, 5), new GraphView.GraphViewData[]{});
+        mOutputGraphViewSeries = new GraphViewSeries("Output", new GraphViewSeries.GraphViewSeriesStyle(Color.WHITE, 5), new GraphView.GraphViewData[]{});
+        mPGraphViewSeries = new GraphViewSeries("P", new GraphViewSeries.GraphViewSeriesStyle(Color.BLUE, 2), new GraphView.GraphViewData[]{});
+        mIGraphViewSeries = new GraphViewSeries("I", new GraphViewSeries.GraphViewSeriesStyle(Color.GREEN, 2), new GraphView.GraphViewData[]{});
+        mDGraphViewSeries = new GraphViewSeries("D", new GraphViewSeries.GraphViewSeriesStyle(Color.YELLOW, 2), new GraphView.GraphViewData[]{});
         graphView.addSeries(mErrorGraphViewSeries);
         graphView.addSeries(mOutputGraphViewSeries);
         graphView.addSeries(mPGraphViewSeries);
@@ -330,7 +330,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         graphView = new LineGraphView(this, "PID");
         graphView.setScrollable(true);
         graphView.getGraphViewStyle().setVerticalLabelsColor(Color.RED);
-        graphView.setShowLegend(true);
+        // graphView.setShowLegend(true);
         graphView.getGraphViewStyle().setTextSize(40);
         graphView.setLegendAlign(GraphView.LegendAlign.MIDDLE);
         graphView.getGraphViewStyle().setNumVerticalLabels(3);
@@ -339,11 +339,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         graphView.setHorizontalLabels(null);
         graphView.setManualYAxisBounds(100, -100);
         graphView.setViewPort(2, 3500);
-        //  graphView.addSeries(mErrorGraphViewSeries);
-        //   graphView.addSeries(mOutputGraphViewSeries);
-        //    graphView.addSeries(mPGraphViewSeries);
-        //    graphView.addSeries(mIGraphViewSeries);
-        //    graphView.addSeries(mDGraphViewSeries);
+
 
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.mLayout);
         layout.addView(graphView);
@@ -502,6 +498,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                 SessionID = mDbHelper.GetNewSessionID();
+                    setTitle("Session ID " + SessionID);
                 integral = 0;
                     resetGraphView();
 
@@ -528,6 +525,11 @@ public class MainActivity extends Activity implements SensorEventListener {
             case R.id.action_ListSession:
                 Intent ListSessionActivity = new Intent(getBaseContext(), ListSession.class);
                 startActivity(ListSessionActivity);
+                return true;
+            case R.id.action_DeleteSession:
+                int sessionDeteled = mDbHelper.DeleteLastSession();
+
+                AddToConsole("Session " + sessionDeteled + " deleted...");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
