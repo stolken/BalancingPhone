@@ -144,6 +144,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
 
             last_onSensorChangedTimestampMs = event.timestamp / 1000000; //record for next
+
             PID();
             intervalTxRxMs = sendSerialMessage();
 
@@ -331,14 +332,16 @@ public class MainActivity extends Activity implements SensorEventListener {
         graphView.setScrollable(true);
         graphView.getGraphViewStyle().setVerticalLabelsColor(Color.RED);
         // graphView.setShowLegend(true);
+        graphView.setShowHorizontalLabels(false);
+        graphView.setShowVerticalLabels(false);
         graphView.getGraphViewStyle().setTextSize(40);
-        graphView.setLegendAlign(GraphView.LegendAlign.MIDDLE);
+        //graphView.setLegendAlign(GraphView.LegendAlign.MIDDLE);
         graphView.getGraphViewStyle().setNumVerticalLabels(3);
         graphView.getGraphViewStyle().setGridColor(Color.GRAY);
         graphView.getGraphViewStyle().setVerticalLabelsWidth(1);
         graphView.setHorizontalLabels(null);
         graphView.setManualYAxisBounds(100, -100);
-        graphView.setViewPort(2, 3500);
+        graphView.setViewPort(2, 2000);
 
 
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.mLayout);
