@@ -22,6 +22,7 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.text.Layout;
@@ -36,6 +37,8 @@ import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.os.PowerManager.WakeLock;
+
 
 import java.nio.ByteBuffer;
 //test webcommit
@@ -93,6 +96,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     GraphViewSeries mDGraphViewSeries;
     DbHelper mDbHelper;
     double valProximitySensor;
+    WakeLock wakeLock;
 
     UsbDevice mDevice;
     int TIMEOUT = 1000;
@@ -281,6 +285,19 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         return ret;
     }
+
+    private void WakeLock() {
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
+        wakeLock.acquire();
+    }
+
+
+    private void WakeRelease() {
+        wakeLock.release();
+    }
+
+
 
     private double getPitch(SensorEvent event) {
         float[] mRotationMatrixFromVector = new float[9];
@@ -500,6 +517,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         swLoop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
+                    WakeLock();
                 SessionID = mDbHelper.GetNewSessionID();
                     setTitle("Session ID " + SessionID);
                 integral = 0;
@@ -508,6 +526,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                     if (valProximitySensor == 0) {
                         proximityHold = true;
                     }
+                } else {
+                    WakeRelease();
                 }
             
             }
