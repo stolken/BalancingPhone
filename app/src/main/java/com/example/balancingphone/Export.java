@@ -8,6 +8,14 @@ private class Export extends AsyncTask<Void, Integer, Void> {
         private File mFile;
         @Override
         protected void onPreExecute() {
+                 mGoogleApiClient = new GoogleApiClient.Builder(this)
+            .addApi(Drive.API)
+            .addScope(Drive.SCOPE_FILE)
+            .addConnectionCallbacks(this)
+            .addOnConnectionFailedListener(this)
+            .build();
+            .connect();
+                
             super.onPreExecute();
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
             mProgressDialog.setMessage("Please wait");
@@ -101,4 +109,17 @@ private class Export extends AsyncTask<Void, Integer, Void> {
             mProgressDialog.dismiss();
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
+        
+        @Override
+public void onConnectionFailed(ConnectionResult connectionResult) {
+    if (connectionResult.hasResolution()) {
+        try {
+            connectionResult.startResolutionForResult(this, RESOLVE_CONNECTION_REQUEST_CODE);
+        } catch (IntentSender.SendIntentException e) {
+            // Unable to resolve, message user appropriately
+        }
+    } else {
+        GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), this, 0).show();
+    }
+}
     }// class
