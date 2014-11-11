@@ -99,6 +99,24 @@ private class Export extends AsyncTask<Void, Integer, Void> {
                 zipoutputstream.closeEntry();
                 // Complete the ZIP file
                 zipoutputstream.close();
+                    ResultCallback<DriveContentsResult> contentsCallback = new
+            ResultCallback<DriveContentsResult>() {
+        @Override
+        public void onResult(DriveContentsResult result) {
+            if (!result.getStatus().isSuccess()) {
+                // Handle error
+                return;
+            }
+
+            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                    .setTitle("New file")
+                    .setMimeType("text/plain").build();
+            // Create a file in the root folder
+            Drive.DriveApi.getRootFolder(getGoogleApiClient())
+                    .createFile(getGoogleApiClient(), changeSet, result.getDriveContents())
+                    .setResultCallback(this);
+        }
+    }
             } catch (Exception e) {
                 Log.d("Exception", e.getMessage());
             }
